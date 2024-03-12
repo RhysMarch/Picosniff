@@ -1,35 +1,31 @@
 from scapy.all import *
-
+from packet_parser import parse_packet
 
 class PacketSniffer:
     def __init__(self):
-        self.choose_interface_and_sniff()
+        self.interfaces = self.display_interfaces()
 
-    def list_interfaces(self):
-
-        readable_interfaces = {}
-        for key, iface in IFACES.data.items():
+    def display_interfaces(self):
+        interfaces_dict = {}
+        for index, (key, iface) in enumerate(sorted(IFACES.data.items(), key=lambda x: x[1].name), start=1):
             readable_name = iface.name
             description = iface.description
-            readable_interfaces[readable_name] = description
-        return readable_interfaces
+            interfaces_dict[index] = readable_name
+            print(f"  {index}: {readable_name} ({description})")
+        return interfaces_dict
 
     def choose_interface_and_sniff(self):
-        interfaces = self.list_interfaces()
-
-        for index, (name, desc) in enumerate(interfaces.items()):
-            print(f"{index}: {name} ({desc})")
-
-        choice = input("""\nSelect an Interface: """)
+        choice = input("\nSelect an Interface (number): ")
         try:
-            selected_key = list(interfaces.keys())[int(choice)]
-            print(f"Sniffing on interface: {selected_key}")
-            sniff(iface=selected_key, prn=self.process_packet)
-
-        except (ValueError, IndexError):
-            print("Enter a valid interface number.")
-        except KeyboardInterrupt:
-            print("\nStopped sniffing.")
+            selected_index = int(choice)
+            if selected_index in self.interfaces:
+                selected_key = self.interfaces[selected_index]
+                print(f"Sniffing on interface: {selected_key}")
+                sniff(iface=selected_key, prn=self.process_packet)
+            else:
+                print("Invalid interface. Please enter a valid number.")
+        except (ValueError, IndexError, KeyboardInterrupt):
+            print("\nInvalid input or operation stopped.")
 
     def process_packet(self, packet):
-        print(packet.summary())
+        parse_packet(packet)
