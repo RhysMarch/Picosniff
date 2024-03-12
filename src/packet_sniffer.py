@@ -5,7 +5,6 @@ from packet_parser import parse_packet
 class PacketSniffer:
     def __init__(self):
         self.interfaces = self.display_interfaces()
-        self.should_stop = False
 
     def display_interfaces(self):
         interfaces_dict = {}
