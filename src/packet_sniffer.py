@@ -1,9 +1,11 @@
 from scapy.all import *
 from packet_parser import parse_packet
 
+
 class PacketSniffer:
     def __init__(self):
         self.interfaces = self.display_interfaces()
+        self.should_stop = False
 
     def display_interfaces(self):
         interfaces_dict = {}
@@ -11,11 +13,15 @@ class PacketSniffer:
             readable_name = iface.name
             description = iface.description
             interfaces_dict[index] = readable_name
-            print(f"  {index}: {readable_name} ({description})")
+            print(f"{index}: {readable_name} ({description})")
         return interfaces_dict
 
-    def choose_interface_and_sniff(self):
-        choice = input("\nSelect an Interface (number): ")
+    def choose_interface_and_sniff(self, interface_number=None):
+        if interface_number is None:
+            choice = input("\nSelect an Interface (number): ")
+        else:
+            choice = interface_number
+
         try:
             selected_index = int(choice)
             if selected_index in self.interfaces:
@@ -24,8 +30,10 @@ class PacketSniffer:
                 sniff(iface=selected_key, prn=self.process_packet)
             else:
                 print("Invalid interface. Please enter a valid number.")
-        except (ValueError, IndexError, KeyboardInterrupt):
-            print("\nInvalid input or operation stopped.")
+        except (ValueError, IndexError):
+            print("\nInvalid input.")
+        except KeyboardInterrupt:
+            print("\nStopped sniffing.")
 
     def process_packet(self, packet):
         parse_packet(packet)
