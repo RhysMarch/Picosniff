@@ -36,7 +36,7 @@ class CLIHandler:
     def show_help(self):
         print("")
         print("  sniff [interface number] - Start packet sniffing on the chosen interface")
-        print("  clear - Restart the program")
+        print("  clear - Clear program output")
         print("  settings - Change Picosniff settings")
         print("  save - Save previous sniffer output")
         print("  exit - Exit the program")
