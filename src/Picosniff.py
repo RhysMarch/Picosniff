@@ -7,6 +7,7 @@ def picosniff_ascii():
     # Source: https://patorjk.com/software/taag/
     # Font: Slant
     print("""\
+                  
                     ____  _                       _ ________
                    / __ \(_)________  _________  (_) __/ __/
                   / /_/ / / ___/ __ \/ ___/ __ \/ / /_/ /_  
