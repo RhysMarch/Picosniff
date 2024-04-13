@@ -11,7 +11,7 @@ capture of network traffic for analysis.
 """
 
 from scapy.all import *
-from packet_parser import parse_packet
+from packet_parser import parse_packet, report_packet_counts
 
 
 class PacketSniffer:
@@ -59,12 +59,14 @@ class PacketSniffer:
                 selected_key = self.interfaces[selected_index]
                 print(f"Sniffing on interface: {selected_key}")
                 sniff(iface=selected_key, prn=self.process_packet, store=False)
+                report_packet_counts()  # Report the final counts once sniffing is done
             else:
                 print("Invalid interface. Please enter a valid number.")
         except (ValueError, IndexError):
             print("\nInvalid input.")
         except KeyboardInterrupt:
             print("\nStopped sniffing.")
+            report_packet_counts()  # Report the final counts once sniffing is done
 
     def process_packet(self, packet):
         parse_packet(packet)
