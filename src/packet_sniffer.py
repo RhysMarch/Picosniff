@@ -1,3 +1,15 @@
+"""
+This module, packet_sniffer.py, contains the PacketSniffer class which handles the identification,
+selection, and sniffing of network interfaces using Scapy.
+
+Classes:
+- PacketSniffer: Handles network interface management and packet capturing. It also dispatches packets
+  to the packet parser for further processing.
+
+The PacketSniffer class is integral to the operation of the Picosniff application, facilitating the
+capture of network traffic for analysis.
+"""
+
 from scapy.all import *
 from packet_parser import parse_packet
 

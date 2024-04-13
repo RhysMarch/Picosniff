@@ -1,3 +1,14 @@
+"""
+This file, cli_handler.py, contains the CLIHandler class that manages command-line interactions
+for the Picosniff application.
+
+Classes:
+- CLIHandler: Manages user inputs and commands to control packet sniffing and application settings.
+
+This class provides an interface for the user to interact with the application through a command-line
+interface, allowing for dynamic control of the packet sniffing process.
+"""
+
 import os
 import platform
 
@@ -9,7 +20,7 @@ class CLIHandler:
         self.commands = {
             'help': self.show_help,
             'sniff': self.packet_sniffer.choose_interface_and_sniff,
-            'clear': self.clear_output,  # Adding the 'clear' command
+            'clear': self.clear_output,
         }
 
     def run_cli(self):
