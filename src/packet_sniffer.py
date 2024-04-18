@@ -12,6 +12,7 @@ capture of network traffic for analysis.
 
 from scapy.all import *
 from packet_parser import parse_packet, report_packet_counts
+from settings import INTERFACE_DESCRIPTIONS
 
 
 class PacketSniffer:
@@ -20,26 +21,10 @@ class PacketSniffer:
 
     def display_interfaces(self):
         interfaces_dict = {}
-        interface_descriptions = {
-            'lo0': 'Loopback Interface',
-            'en': 'Ethernet/Wi-Fi Interface',
-            'p2p': 'Peer-to-peer Interface',
-            'awdl': 'Apple Wireless Direct Link',
-            'bridge': 'Bridge Interface',
-            'gif': 'Generic Tunnel Interface',
-            'stf': 'IPv6 to IPv4 Tunnel Interface',
-            'utun': 'VPN Interface',
-            'enx': 'USB Ethernet Interface',
-            'ap': 'Wi-Fi Access Point Interface',
-            'llw': 'Low Latency Interface',
-            'vlan': 'Virtual LAN Interface',
-        }
-
         for index, (key, iface) in enumerate(sorted(IFACES.data.items(), key=lambda x: x[1].name), start=1):
             readable_name = iface.name
             description = iface.description or 'No description available'
-            # Find a more readable name if it matches known interfaces
-            for prefix, readable in interface_descriptions.items():
+            for prefix, readable in INTERFACE_DESCRIPTIONS.items():
                 if readable_name.startswith(prefix):
                     description = readable
                     break

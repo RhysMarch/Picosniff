@@ -24,6 +24,21 @@ DEFAULT_COLORS = {
     'NTP': 'bright_orange'
 }
 
+# Interface descriptions for network interfaces
+INTERFACE_DESCRIPTIONS = {
+    'lo0': 'Loopback Interface',
+    'en': 'Ethernet/Wi-Fi Interface',
+    'p2p': 'Peer-to-peer Interface',
+    'awdl': 'Apple Wireless Direct Link',
+    'bridge': 'Bridge Interface',
+    'gif': 'Generic Tunnel Interface',
+    'stf': 'IPv6 to IPv4 Tunnel Interface',
+    'utun': 'VPN Interface',
+    'enx': 'USB Ethernet Interface',
+    'ap': 'Wi-Fi Access Point Interface',
+    'llw': 'Low Latency Interface',
+    'vlan': 'Virtual LAN Interface',
+}
 
 def update_payload_size(size):
     """Update the default payload size for packet visualization."""
