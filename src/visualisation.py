@@ -11,14 +11,17 @@ This module simplifies the task of displaying colored and formatted text output 
 from rich.console import Console
 from rich.table import Table
 from settings import get_color
+from rich.text import Text
+
 
 console = Console()
 
 
 def print_colored(text, packet_type):
-    """Print text with the color associated with the packet type using settings from settings.py."""
+    """Print text using a specific color."""
     color = get_color(packet_type)
-    console.print(f"[{color}]{text}[/{color}]")
+    text_obj = Text(text, style=color)
+    console.print(text_obj)
 
 
 def display_packet_statistics(packet_counts):

@@ -50,6 +50,7 @@ def parse_packet(packet):
         if layer.payload:
             payload_data = bytes(layer.payload)
             hexdump_output = hexdump(payload_data[:payload_size], dump=True)
+            hexdump_output = hexdump_output.replace("[", "\[").replace("]", "\]")
             print_colored(hexdump_output, packet_type)
 
     if packet.haslayer(IP):
