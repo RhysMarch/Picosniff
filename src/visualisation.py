@@ -23,7 +23,7 @@ def print_colored(text, packet_type):
 
 def display_packet_statistics(packet_counts):
     """Displays a summary table of packet counts."""
-    table = Table(title="Packet Counts by Type")
+    table = Table(title=" ")
     table.add_column("Packet Type", style="cyan", no_wrap=True)
     table.add_column("Count", style="magenta")
     for packet_type, count in sorted(packet_counts.items()):
