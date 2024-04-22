@@ -19,12 +19,12 @@ class PicosniffApp(App):
 
     def compose(self) -> ComposeResult:
         with Container(id="app-grid"):
-            with VerticalScroll(id="top-left-pane"):
+            with Container(id="top-left-pane"):
                 interfaces_info = get_interfaces_info()
-                yield Static(ascii_logo())
+                yield Static(ascii_logo(), id="logo")
                 yield Static(interfaces_info)
             with VerticalScroll(id="middle-left-pane"):
-                yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n")
+                yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n", id="commands")
                 self.input_field = Input(placeholder="Type a command here")
                 yield self.input_field
             with VerticalScroll(id="right-pane"):

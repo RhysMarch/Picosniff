@@ -8,6 +8,7 @@
 #top-left-pane {
     overflow-y: scroll;
     border: dodgerblue;
+    content-align-horizontal: center;
 }
 
 #middle-left-pane {
@@ -31,3 +32,12 @@
     layout: grid;
     border: dodgerblue;
 }
+
+#logo {
+    content-align-horizontal: center;
+}
+
+#commands {
+    content-align-horizontal: center;
+}
+
