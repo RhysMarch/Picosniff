@@ -23,6 +23,8 @@ async def handle_command(self, event):
         self.output_area.write("Sniffing stopped\n")
     elif command == "clear":
         self.output_area.clear()
+    elif command == "exit":
+        self.exit()  # Call the Textual app's exit method
     else:
         self.output_area.write(f"Unknown or incomplete command: '{input_text}'.\n")
     self.input_field.value = ""
