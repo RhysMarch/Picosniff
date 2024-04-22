@@ -1,16 +1,13 @@
 # Picosniff.py
 from textual import on
 from textual.app import App, ComposeResult
-from scapy.all import IFACES
 from textual.containers import Container, VerticalScroll
 from textual.widgets import Static, Input, RichLog
-from packet_sniffer import start_sniffing
-from packet_parser import parse_packet
 from utils import ascii_logo, get_interfaces_info
+from cli_handler import handle_command
 
 
 class PicosniffApp(App):
-
     CSS_PATH = "style.tcss"
 
     def __init__(self) -> None:
@@ -22,7 +19,7 @@ class PicosniffApp(App):
             with Container(id="top-left-pane"):
                 interfaces_info = get_interfaces_info()
                 yield Static(ascii_logo(), id="logo")
-                yield Static(interfaces_info)
+                yield Static(interfaces_info, id="interfaces")
             with VerticalScroll(id="middle-left-pane"):
                 yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n", id="commands")
                 self.input_field = Input(placeholder="Type a command here")
@@ -37,26 +34,8 @@ class PicosniffApp(App):
         self.input_field.focus()
 
     @on(Input.Submitted)
-    async def handle_command(self, event):
-        input_text = event.value.strip()
-        command, *args = input_text.split()
-        if command == "sniff" and args:
-            iface_index = int(args[0])
-            if 0 < iface_index <= len(IFACES):
-                iface_name = IFACES[list(IFACES.keys())[iface_index - 1]].name
-                self.output_area.write(f"Sniffing on interface {iface_name}...\n")
-                self.sniffing_active = True
-                start_sniffing(iface_name, lambda packet: parse_packet(packet, self.output_area.write), lambda: self.sniffing_active)
-            else:
-                self.output_area.write("Invalid interface index\n")
-        elif command == "stop":
-            self.sniffing_active = False
-            self.output_area.write("Sniffing stopped\n")
-        elif command == "clear":
-            self.output_area.clear()
-        else:
-            self.output_area.write(f"Unknown or incomplete command: '{input_text}'.\n")
-        self.input_field.value = ""
+    async def handle_command_wrapper(self, event):
+        await handle_command(self, event)
 
 
 if __name__ == "__main__":
