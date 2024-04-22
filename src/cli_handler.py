@@ -11,6 +11,7 @@ async def handle_command(self, event):
         iface_index = int(args[0])
         if 0 < iface_index <= len(IFACES):
             iface_name = IFACES[list(IFACES.keys())[iface_index - 1]].name
+            self.output_area.clear()
             self.output_area.write(f"Sniffing on interface {iface_name}...\n")
             self.sniffing_active = True
             start_sniffing(iface_name, lambda packet: parse_packet(packet, self.output_area.write),
