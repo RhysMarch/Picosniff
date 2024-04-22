@@ -1,28 +1,11 @@
-"""
-This file, packet_parser.py, contains functions and utilities for parsing packets captured by the sniffer function.
-
-The file supports parsing various types of network protocols including IP, TCP, UDP, DNS, DHCP, HTTP, and NTP.
-Each packet type is handled by a specific function that extracts and prints relevant information using a
-standardized format provided by the visualisation module.
-
-Functions:
-- parse_packet(packet): The main entry point for parsing packets. It dispatches to specific parsing
-  functions based on the packet type.
-
-Dependencies:
-- scapy.all: Used for capturing and dissecting packets.
-- visualisation.py: Used for formatting and coloring output.
-"""
-
 # packet_parser.py
-from scapy.layers.inet import IP, TCP, UDP
+from scapy.all import Raw, hexdump
+from settings import DEFAULT_PAYLOAD_SIZE
+from scapy.layers.inet import TCP, UDP, IP
 from scapy.layers.dns import DNS
 from scapy.layers.dhcp import DHCP
-from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
+from scapy.layers.http import HTTPRequest, HTTPResponse
 from scapy.layers.ntp import NTP
-from scapy.utils import hexdump
-from visualisation import print_colored, display_packet_statistics
-from settings import DEFAULT_PAYLOAD_SIZE
 
 # Global dictionary to keep track of packet counts
 packet_counts = {
@@ -37,69 +20,31 @@ packet_counts = {
 
 
 def parse_packet(packet):
-    """
-    Parses packets and increments the count of each type of packet received. Calls visualisation functions to display
-    the packet data and potentially statistics.
-
-    Args:
-        packet: The packet received from the network interface.
-    """
-    payload_size = DEFAULT_PAYLOAD_SIZE
-
-    def print_payload(layer, packet_type):
-        if layer.payload:
-            payload_data = bytes(layer.payload)
-            hexdump_output = hexdump(payload_data[:payload_size], dump=True)
-            hexdump_output = hexdump_output.replace("[", "\[").replace("]", "\]")
-            print_colored(hexdump_output, packet_type)
+    summary_lines = []
 
     if packet.haslayer(IP):
-        ip_layer = packet[IP]
-        packet_counts['IP'] += 1
-        print_colored(f"IP: {ip_layer.src} -> {ip_layer.dst}", 'IP')
-        print_payload(ip_layer, 'IP')
-
+        summary_lines.append(f"IP: {packet[IP].src} -> {packet[IP].dst}")
     if packet.haslayer(TCP):
-        tcp_layer = packet[TCP]
-        packet_counts['TCP'] += 1
-        print_colored(f"TCP: {tcp_layer.sport} -> {tcp_layer.dport}", 'TCP')
-        print_payload(tcp_layer, 'TCP')
-
+        summary_lines.append(f"TCP: {packet[TCP].sport} -> {packet[TCP].dport}")
     if packet.haslayer(UDP):
-        udp_layer = packet[UDP]
-        packet_counts['UDP'] += 1
-        print_colored(f"UDP: {udp_layer.sport} -> {udp_layer.dport}", 'UDP')
-        print_payload(udp_layer, 'UDP')
-
+        summary_lines.append(f"UDP: {packet[UDP].sport} -> {packet[UDP].dport}")
     if packet.haslayer(DNS):
-        dns_layer = packet[DNS]
-        packet_counts['DNS'] += 1
-        summary = dns_layer.summary()
-        print_colored(f"DNS: {summary}", 'DNS')
-        print_payload(dns_layer, 'DNS')
-
+        dns_query = ' '.join(q.qname.decode('utf-8') for q in packet[DNS].qd) if packet[DNS].qd else "No Queries"
+        summary_lines.append(f"DNS Queries: {dns_query}")
     if packet.haslayer(DHCP):
-        dhcp_layer = packet[DHCP]
-        packet_counts['DHCP'] += 1
-        summary = dhcp_layer.summary()
-        print_colored(f"DHCP: {summary}", 'DHCP')
-        print_payload(dhcp_layer, 'DHCP')
-
+        dhcp_types = {1: "DISCOVER", 2: "OFFER", 3: "REQUEST", 5: "ACK"}
+        dhcp_type = dhcp_types.get(packet[DHCP].options[0][1], "Other")
+        summary_lines.append(f"DHCP: {dhcp_type}")
     if packet.haslayer(HTTPRequest) or packet.haslayer(HTTPResponse):
-        http_layer = packet[HTTP]
-        packet_counts['HTTP'] += 1
-        summary = http_layer.summary()
-        print_colored(f"HTTP: {summary}", 'HTTP')
-        print_payload(http_layer, 'HTTP')
-
+        http_layer = packet[HTTPRequest] if packet.haslayer(HTTPRequest) else packet[HTTPResponse]
+        summary_lines.append(f"HTTP: {http_layer.Method.decode()} {http_layer.Path.decode()}")
     if packet.haslayer(NTP):
         ntp_layer = packet[NTP]
-        packet_counts['NTP'] += 1
-        summary = ntp_layer.summary()
-        print_colored(f"NTP: {summary}", 'NTP')
-        print_payload(ntp_layer, 'NTP')
+        summary_lines.append(f"NTP Version: {ntp_layer.version}")
+    if packet.haslayer(Raw):
+        payload = packet[Raw].load[:DEFAULT_PAYLOAD_SIZE]
+        payload_hexdump = hexdump(payload, dump=True)
+        summary_lines.append("Payload (hexdump):")
+        summary_lines.append(payload_hexdump)
 
-
-def report_packet_counts():
-    """Displays the packet counts after sniffing has completed."""
-    display_packet_statistics(packet_counts)
+    return "\n".join(summary_lines)
