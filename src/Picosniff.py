@@ -1,21 +1,12 @@
+# Picosniff.py
 from textual import on
 from textual.app import App, ComposeResult
 from scapy.all import IFACES
 from textual.containers import Container, VerticalScroll
 from textual.widgets import Static, Input, RichLog
-from rich.text import Text
 from packet_sniffer import start_sniffing
 from packet_parser import parse_packet
-from utils import ascii_logo
-
-
-def get_interfaces_info() -> Text:
-    interfaces_info = Text("Available Network Interfaces:\n")
-    for index, iface in enumerate(IFACES, 1):
-        iface_obj = IFACES[iface]
-        description = iface_obj.description or 'No description available'
-        interfaces_info.append(f"{index}: {iface_obj.name} ({description})\n")
-    return interfaces_info
+from utils import ascii_logo, get_interfaces_info
 
 
 class PicosniffApp(App):
@@ -55,7 +46,7 @@ class PicosniffApp(App):
                 iface_name = IFACES[list(IFACES.keys())[iface_index - 1]].name
                 self.output_area.write(f"Sniffing on interface {iface_name}...\n")
                 self.sniffing_active = True
-                start_sniffing(iface_name, lambda x: self.output_area.write(parse_packet(x) + "\n"), lambda: self.sniffing_active)
+                start_sniffing(iface_name, lambda packet: parse_packet(packet, self.output_area.write), lambda: self.sniffing_active)
             else:
                 self.output_area.write("Invalid interface index\n")
         elif command == "stop":
