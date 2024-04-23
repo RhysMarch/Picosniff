@@ -1,7 +1,7 @@
 # cli_handler.py
 import time
 from scapy.interfaces import IFACES
-from packet_parser import parse_packet, reset_packet_counter
+from packet_parser import parse_packet, reset_packet_counter, reset_packet_counts
 from packet_sniffer import start_sniffing
 
 
@@ -15,7 +15,8 @@ async def handle_command(self, event):
             self.output_area.clear()  # Clears the output area
             self.output_area.write(f"Sniffing on interface {iface_name}...\n")
             self.sniffing_active = True
-            reset_packet_counter()  # Reset the counter each time sniffing starts
+            reset_packet_counts()  # Reset the packet count table
+            reset_packet_counter()  # Reset the counter each time sniffing starts (for packet indexes)
             start_time = time.time()  # Reset the timestamp next to packets
             start_sniffing(iface_name, lambda packet: parse_packet(packet, self.output_area.write, start_time),
                            lambda: self.sniffing_active)

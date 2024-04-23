@@ -41,3 +41,7 @@
     content-align-horizontal: center;
 }
 
+#packet-counts-table {
+    content-align-horizontal: left;
+}
+
