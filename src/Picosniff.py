@@ -1,4 +1,31 @@
-# Picosniff.py
+"""
+Picosniff.py
+
+This module defines the PicosniffApp class, a Textual user interface application
+designed to monitor and visualise network traffic in real-time. The application
+uses the Scapy library to parse network packets and displays various statistics
+and details about the traffic through the interface.
+
+Features:
+- Dynamic packet monitoring with support for multiple network protocols including IP, TCP, UDP, DNS, DHCP, HTTP, and NTP.
+- Real-time visualisations of network traffic through the interface.
+- A command input system allowing the user to start and stop packet sniffing, clear the display, and handle other utility commands.
+
+Structure:
+- The app's layout is divided into several key areas:
+  - `top-left-pane`: Displays the ASCII logo and network interfaces information.
+  - `middle-left-pane`: Contains input commands for controlling packet sniffing and other utilities.
+  - `right-pane`: Dedicated to displaying useful visuals.
+  - `bottom-left-pane`: Acts as the output log for sniffed packet details and system messages.
+
+Usage:
+- The user can start and stop the packet sniffing process and interact with the application through textual commands inputted in the middle left pane.
+- Visuals are shown in the right pane, providing live network traffic data.
+
+Dependencies:
+- Scapy for packet capture and analysis.
+- Textual framework for the interactive UI.
+"""
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Container, VerticalScroll
