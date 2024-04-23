@@ -22,6 +22,11 @@ Global Variables:
 - packet_counts: A dictionary tracking the counts of packets for supported protocols.
 - packet_counter: A counter tracking the total number of packets parsed.
 
+Dependencies:
+- Scapy: Used for packet capture and analysis.
+- Rich: Used for formatting and displaying text in a more readable and visually appealing format.
+- Python Standard Library: Uses modules like time for timestamping.
+
 Usage:
 This module is intended to be used where packet capture data needs to be parsed, formatted, and displayed in real-time. It integrates directly with systems
 that capture packets using Scapy and can output data either to the console or to a UI via provided callback functions.
