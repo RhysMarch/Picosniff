@@ -1,4 +1,35 @@
-# packet_parser.py
+"""
+packet_parser.py
+
+This module provides functionalities for parsing network packets captured via Scapy.
+It supports multiple protocols including IP, TCP, UDP, DNS, DHCP, HTTP, and NTP. The
+module updates global counters and statistics based on the traffic observed and
+formats this data into human-readable summaries using the Rich library for display
+purposes.
+
+Features:
+- Detailed parsing of packets with support for various network layers and protocols.
+- Tracking of packet counts for different protocols, which can be displayed and reset.
+- Formatting packet data for display, including hex dumps of payloads for detailed inspection.
+
+Functions:
+- parse_packet(packet, output_callback, start_time): Analyses the packet and uses the output_callback to display formatted information.
+- handle_payload(packet, output_callback, protocol): Handles packet payloads and provides formatted output, typically a hex dump.
+- reset_packet_counter(): Resets the global packet counter to zero.
+- reset_packet_counts(): Resets all protocol-specific packet counts to zero.
+
+Global Variables:
+- packet_counts: A dictionary tracking the counts of packets for supported protocols.
+- packet_counter: A counter tracking the total number of packets parsed.
+
+Usage:
+This module is intended to be used where packet capture data needs to be parsed, formatted, and displayed in real-time. It integrates directly with systems
+that capture packets using Scapy and can output data either to the console or to a UI via provided callback functions.
+
+Example:
+To use parse_packet function, ensure you provide a packet object received from Scapy, a callback function to handle strings of formatted packet summaries,
+and a start time for relative timing information.
+"""
 from scapy.all import Raw, hexdump
 from settings import DEFAULT_PAYLOAD_SIZE, DEFAULT_COLORS
 from scapy.layers.inet import TCP, UDP, IP
@@ -20,7 +51,7 @@ packet_counts = {
     'NTP': 0
 }
 
-# Packet counter (initialized globally for persistence)
+# Packet counter (initialised globally for persistence)
 packet_counter = 0
 
 
