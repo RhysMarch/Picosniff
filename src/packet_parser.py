@@ -9,7 +9,6 @@ from scapy.layers.ntp import NTP
 from rich.text import Text
 import time
 
-
 # Global dictionary to keep track of packet counts
 packet_counts = {
     'IP': 0,
@@ -21,17 +20,20 @@ packet_counts = {
     'NTP': 0
 }
 
-# Start time for timestamps
-start_time = time.time()
-
 # Packet counter (initialized globally for persistence)
 packet_counter = 0
 
-def parse_packet(packet, output_callback):
-    global packet_counts, packet_counter
 
-    # Calculate timestamp
-    timestamp = time.time() - start_time
+def parse_packet(packet, output_callback, start_time):
+    global packet_counts, packet_counter  # Modify global
+
+    # Calculate timestamp (reset if sniffing starts)
+    current_time = time.time()
+    if not hasattr(parse_packet, 'previous_start_time') or current_time < parse_packet.previous_start_time:
+        start_time = current_time  # Reset start_time if sniffing restarts
+    parse_packet.previous_start_time = current_time
+
+    timestamp = current_time - start_time
 
     # IP Layer Parsing
     if packet.haslayer(IP):
@@ -57,7 +59,8 @@ def parse_packet(packet, output_callback):
     # DNS Layer Parsing
     if packet.haslayer(DNS):
         packet_counter += 1
-        dns_summary = f"[{packet_counter}] ({timestamp:.2f}) DNS Queries: {' '.join(q.qname.decode() for q in packet[DNS].qd)}" if packet[DNS].qd else "DNS Queries: No Queries"
+        dns_summary = f"[{packet_counter}] ({timestamp:.2f}) DNS Queries: {' '.join(q.qname.decode() for q in packet[DNS].qd)}" if \
+        packet[DNS].qd else "DNS Queries: No Queries"
         output_callback(Text(dns_summary, style=DEFAULT_COLORS['DNS']))
 
     # DHCP Layer Parsing
