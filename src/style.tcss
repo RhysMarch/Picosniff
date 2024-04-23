@@ -43,5 +43,6 @@
 
 #packet-counts-table {
     content-align-horizontal: left;
+    padding-left: 2;
 }
 
