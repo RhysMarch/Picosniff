@@ -1,7 +1,7 @@
 # visualisation.py
 from textual.widget import Widget
 from rich.table import Table
-from packet_parser import packet_counts
+from packet_parser import parser
 
 
 class PacketCountsTable(Widget):
@@ -15,7 +15,7 @@ class PacketCountsTable(Widget):
         self.table.add_column("Count", justify="left", style="bright_white")
 
         # Assuming packet_counts is a global variable or passed in some way
-        for protocol, count in packet_counts.items():
+        for protocol, count in parser.packet_counts.items():
             self.table.add_row(protocol, str(count))
 
         # This tells Textual to refresh this widget
