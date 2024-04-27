@@ -61,17 +61,15 @@ class PicosniffApp(App):
 
     async def on_mount(self):
         self.input_field.focus()
-        self.set_interval(0.1, self.update_packet_counts_table)
+        self.set_interval(0.1, self.update_widgets)
 
     @on(Input.Submitted)
     async def handle_command_wrapper(self, event):
         await handle_command(self, event)
 
     # Add a method to update the packet counts table
-    async def update_packet_counts_table(self):
-        # Grab the widget by querying it
+    async def update_widgets(self):
         packet_counts_widget = self.query_one(PacketCountsTable)
-        # Call the method on the widget to refresh its content
         packet_counts_widget.refresh_table()
 
 
