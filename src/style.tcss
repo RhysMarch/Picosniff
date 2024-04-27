@@ -44,5 +44,11 @@
 #packet-counts-table {
     content-align-horizontal: left;
     /* top, right, bottom, left */
+    padding: 1 1 0 1;
+}
+
+#packet-flow-plot {
+    content-align-horizontal: center;
+    /* top, right, bottom, left */
     padding: 0 1 0 1;
 }

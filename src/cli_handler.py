@@ -40,6 +40,7 @@ import time
 from scapy.interfaces import IFACES
 from packet_parser import parser
 from packet_sniffer import start_sniffing
+from visualisation import PacketFlowPlot
 
 
 async def handle_command(self, event):
@@ -52,6 +53,7 @@ async def handle_command(self, event):
             self.output_area.clear()  # Clears the output area
             self.output_area.write(f"Sniffing on interface {iface_name}...\n")
             self.sniffing_active = True
+            self.app.query_one(PacketFlowPlot).start_tracking()  # Start time tracking on the plot
             parser.reset_packet_counts()  # Reset using the parser instance
             parser.reset_packet_counter()
             parser.start_time = time.time()  # Reset the timestamp next to packets
@@ -62,6 +64,7 @@ async def handle_command(self, event):
     elif command == "stop":
         self.sniffing_active = False
         self.output_area.write("Sniffing stopped\n")
+        self.app.query_one(PacketFlowPlot).reset()  # Reset the plot
     elif command == "clear":
         self.output_area.clear()
     elif command == "exit":

@@ -32,7 +32,7 @@ from textual.containers import Container, VerticalScroll
 from textual.widgets import Static, Input, RichLog
 from utils import ascii_logo, get_interfaces_info
 from cli_handler import handle_command
-from visualisation import PacketCountsTable
+from visualisation import PacketCountsTable, PacketFlowPlot
 
 
 class PicosniffApp(App):
@@ -54,7 +54,8 @@ class PicosniffApp(App):
                 self.input_field = Input(placeholder="Type a command here")
                 yield self.input_field
             with VerticalScroll(id="right-pane"):
-                yield PacketCountsTable(id="packet-counts-table")  # This yields the table widget to the layout
+                yield PacketFlowPlot(id="packet-flow-plot")  # This displays packet flow over time
+                yield PacketCountsTable(id="packet-counts-table")  # This displays packet count by protocol type
             with VerticalScroll(id="bottom-left-pane"):
                 self.output_area = RichLog()
                 yield self.output_area
