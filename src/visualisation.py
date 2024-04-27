@@ -1,10 +1,42 @@
-# visualisation.py
-import time
+"""
+visualisation.py
 
+This module provides visualisation widgets for the Picosniff application, leveraging the Textual framework
+to display packet traffic statistics and a real-time packet flow plot in a terminal interface.
+
+Classes:
+- PacketCountsTable: A Textual widget that displays a table of packet counts by protocol.
+- PacketFlowPlot: A Textual widget that uses the Plotext library to plot packet flow over time.
+
+The PacketCountsTable widget shows the number of packets captured for each network protocol, updating
+in real-time as new data is received. The PacketFlowPlot widget graphs the rate of packets received over
+time, providing a visual representation of network activity.
+
+Usage:
+The widgets are intended to be integrated with the main Textual application interface of Picosniff.
+They are dynamically updated and provide the user with real-time data visualisation of network traffic.
+
+Dependencies:
+- Textual: Used to create the UI components in a terminal-based environment.
+- Plotext: Utilised for plotting real-time data within the terminal.
+- packet_parser: Provides the data needed by fetching packet counts and other metrics.
+
+Examples:
+Widgets from this module are instantiated and managed within the Picosniff Textual application. They
+are not standalone and require packet data provided by packet_parser to function correctly.
+
+PacketCountsTable:
+- Displays real-time updates of packet counts for various network protocols such as IP, TCP, etc.
+
+PacketFlowPlot:
+- Plots the number of packets received over time on a graph with time on the X-axis and packet count on the Y-axis.
+- Starts and stops tracking based on user interaction with the main application to control packet sniffing.
+
+"""
+import time
 from textual.widget import Widget
 from rich.table import Table
 from packet_parser import parser
-import plotext as plt
 from textual_plotext import PlotextPlot
 
 
