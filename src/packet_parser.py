@@ -48,7 +48,7 @@ import time
 
 class PacketParser:
     def __init__(self):
-        self.start_time = time.time()  # Initialize upon object creation
+        self.start_time = time.time()  # Initialise upon object creation
         self.packet_counter = 0
         self.packet_counts = {
             'IP': 0,
