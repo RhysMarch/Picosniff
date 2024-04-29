@@ -1,3 +1,14 @@
+"""
+Module: utils.py
+
+Provides utility functions for network interface discovery and ASCII art logo generation.
+
+Functions:
+  ascii_logo(): Returns a string containing an ASCII art representation of the Picosniff logo.
+
+  get_interfaces_info(): Collects information about available network interfaces and formats it into a Rich Text object.
+"""
+
 from rich.text import Text
 from scapy.interfaces import IFACES
 
