@@ -22,6 +22,21 @@ DEFAULT_COLORS = {
     'NTP': 'bright_orange'
 }
 
+INTERFACE_NAME_MAP = {
+    'lo0': 'Loopback (localhost)',
+    'en0': 'Ethernet / Wi-Fi (Primary)',
+    'en1': 'Ethernet (Secondary)',
+    'en2': 'Ethernet (Additional)',
+    'en3': 'Ethernet (Additional)',
+    'en4': 'Ethernet (Additional)',
+    'en5': 'Ethernet (Additional)',
+    'bridge0': 'Thunderbolt Bridge',
+    'ap1': 'Access Point (Wireless)',  # Or a more accurate description if needed
+    'awd10': 'Apple Wireless Direct Link',
+    'llw0': 'Low-latency WLAN Interface'
+}
+
+
 
 def update_payload_size(size):
     """Update the default payload size for packet visualization."""

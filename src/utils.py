@@ -11,6 +11,7 @@ Functions:
 
 from rich.text import Text
 from scapy.interfaces import IFACES
+from settings import INTERFACE_NAME_MAP
 
 
 def ascii_logo() -> str:
@@ -27,6 +28,7 @@ def get_interfaces_info() -> Text:
     interfaces_info = Text("Available Network Interfaces:\n")
     for index, iface in enumerate(IFACES, 1):
         iface_obj = IFACES[iface]
+        iface_name = INTERFACE_NAME_MAP.get(iface, iface)  # Try to get the readable name
         description = iface_obj.description or 'No description available'
-        interfaces_info.append(f"{index}: {iface_obj.name} ({description})\n")
+        interfaces_info.append(f"{index}: {iface_name} ({description})\n")
     return interfaces_info
