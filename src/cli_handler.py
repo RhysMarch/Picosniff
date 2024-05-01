@@ -22,15 +22,6 @@ Usage:
 This module is used within a Textual application where commands are issued through an input field. The `handle_command`
 function is bound to events triggered by submitting text in this field.
 
-Example:
-Assuming an integration with a Textual App class:
-
-    @on(Input.Submitted)
-    async def handle_command_wrapper(self, event):
-        await handle_command(self, event)
-
-This function will interpret commands such as 'sniff', 'stop', 'clear', and 'exit', executing corresponding actions.
-
 Dependencies:
 - scapy.interfaces.IFACES: Used to validate and resolve network interface specifications from user commands.
 - packet_parser: Utilises functions to parse packets and manage packet counters.
@@ -43,39 +34,69 @@ from packet_sniffer import start_sniffing
 from visualisation import PacketFlowPlot
 
 
-async def handle_command(self, event):
+async def handle_command(handler, event):
+
     input_text = event.value.strip()
+    if not input_text:
+        # If there's no input, just return without doing anything
+        return
+
     command, *args = input_text.split()
-    if command == "sniff" and args:
+
+    command_actions = {
+        'sniff': handler.handle_sniff,
+        'stop': handler.handle_stop,
+        'clear': handler.handle_clear,
+        'exit': handler.handle_exit,
+        'unknown': handler.handle_unknown_command
+    }
+
+    func = command_actions.get(command, command_actions['unknown'])
+    await func(args)
+
+
+class CommandHandler:
+    def __init__(self, app):
+        self.app = app
+
+    async def handle_sniff(self, args):
+        if not args:
+            self.app.output_area.write("No interface specified.\n")
+            return
+
         iface_index = int(args[0])
         if 0 < iface_index <= len(IFACES):
             iface_name = IFACES[list(IFACES.keys())[iface_index - 1]].name
-            self.output_area.clear()  # Clears the output area
-            self.output_area.write(f"Sniffing on interface {iface_name}...\n")
-            self.sniffing_active = True
-            self.app.query_one(PacketFlowPlot).start_tracking()  # Start time tracking on the plot
-            parser.reset_packet_counts()  # Reset using the parser instance
-            parser.reset_packet_counter()
-            parser.start_time = time.time()  # Reset the timestamp next to packets
-            start_sniffing(iface_name, lambda packet: parser.parse_packet(packet, self.output_area.write),
-                           lambda: self.sniffing_active)
-
-            def check_for_no_packets():
-                if parser.packet_counter == 0:
-                    self.output_area.write(
-                        "No packets captured. Consider running with administrator/root privileges.\n")
-            self.set_timer(5, check_for_no_packets)
-
+            self.start_sniffing_on_interface(iface_name)
         else:
-            self.output_area.write("Invalid interface index\n")
-    elif command == "stop":
-        self.sniffing_active = False
-        self.output_area.write("Sniffing stopped\n")
+            self.app.output_area.write("Invalid interface index\n")
+
+    async def handle_stop(self, args):
+        self.app.sniffing_active = False
+        self.app.output_area.write("Sniffing stopped\n")
         self.app.query_one(PacketFlowPlot).reset()  # Reset the plot
-    elif command == "clear":
-        self.output_area.clear()
-    elif command == "exit":
-        self.exit()  # Call the Textual app's exit method
-    else:
-        self.output_area.write(f"Unknown or incomplete command: '{input_text}'.\n")
-    self.input_field.value = ""
+
+    async def handle_clear(self, args):
+        self.app.output_area.clear()
+
+    async def handle_exit(self, args):
+        self.app.exit()  # Exit the application
+
+    async def handle_unknown_command(self, args):
+        self.app.output_area.write(f"Unknown or incomplete command")
+
+    def start_sniffing_on_interface(self, iface_name):
+        self.app.output_area.clear()
+        self.app.output_area.write(f"Sniffing on interface {iface_name}...\n")
+        self.app.sniffing_active = True
+        self.app.query_one(PacketFlowPlot).start_tracking()
+        parser.reset_packet_counts()
+        parser.reset_packet_counter()
+        parser.start_time = time.time()
+        start_sniffing(iface_name, lambda packet: parser.parse_packet(packet, self.app.output_area.write),
+                       lambda: self.app.sniffing_active)
+        self.app.set_timer(5, self.check_for_no_packets)
+
+    def check_for_no_packets(self):
+        if parser.packet_counter == 0:
+            self.app.output_area.write("No packets captured. Consider running with administrator/root privileges.\n")

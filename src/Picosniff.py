@@ -31,7 +31,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, VerticalScroll
 from textual.widgets import Static, Input, RichLog
 from utils import ascii_logo, get_interfaces_info
-from cli_handler import handle_command
+from cli_handler import handle_command, CommandHandler
 from visualisation import PacketCountsTable, PacketFlowPlot
 
 
@@ -42,6 +42,7 @@ class PicosniffApp(App):
         super().__init__()
         self.sniffing_active = False
         self.packet_counts_table = PacketCountsTable()
+        self.command_handler = CommandHandler(self)  # Pass the app instance to the command handler
 
     def compose(self) -> ComposeResult:
         with Container(id="app-grid"):
@@ -66,7 +67,8 @@ class PicosniffApp(App):
 
     @on(Input.Submitted)
     async def handle_command_wrapper(self, event):
-        await handle_command(self, event)
+        await handle_command(self.command_handler, event)
+        self.input_field.clear()
 
     # Add a method to update the packet counts table
     async def update_widgets(self):
