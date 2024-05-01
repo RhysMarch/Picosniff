@@ -29,9 +29,9 @@ def get_interfaces_info() -> Text:
     for index, iface in enumerate(IFACES, 1):
         iface_obj = IFACES[iface]
         if platform.system() == 'Darwin':  # Check if we're on macOS
-            INTERFACE_NAME_MAP.get(iface, iface)  # Use the map
+            iface_name = INTERFACE_NAME_MAP.get(iface, iface)  # Use the map
         else:
             iface_name = iface_obj.name  # Try to get the name directly
-            description = iface_obj.description or 'No description available'
-            interfaces_info.append(f"{index}: {iface_name} ({description})\n")
+        description = iface_obj.description or 'No description available'
+        interfaces_info.append(f"{index}: {iface_name} ({description})\n")
     return interfaces_info
