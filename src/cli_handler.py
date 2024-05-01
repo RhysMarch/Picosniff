@@ -59,6 +59,13 @@ async def handle_command(self, event):
             parser.start_time = time.time()  # Reset the timestamp next to packets
             start_sniffing(iface_name, lambda packet: parser.parse_packet(packet, self.output_area.write),
                            lambda: self.sniffing_active)
+
+            def check_for_no_packets():
+                if parser.packet_counter == 0:
+                    self.output_area.write(
+                        "No packets captured. Consider running with administrator/root privileges.\n")
+            self.set_timer(5, check_for_no_packets)
+
         else:
             self.output_area.write("Invalid interface index\n")
     elif command == "stop":
