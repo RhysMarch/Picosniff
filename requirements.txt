@@ -2,3 +2,4 @@ scapy
 rich
 textual
 plotext
+textual_plotext
