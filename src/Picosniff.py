@@ -31,7 +31,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, VerticalScroll
 from textual.widgets import Static, Input, RichLog
 from utils import ascii_logo, get_interfaces_info
-from cli_handler import handle_command, CommandHandler
+from tui_handler import handle_command, CommandHandler
 from visualisation import PacketCountsTable, PacketFlowPlot
 
 

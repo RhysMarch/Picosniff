@@ -1,5 +1,5 @@
 """
-cli_handler.py
+tui_handler.py
 
 This module defines the command handling logic for a Textual-based network packet sniffing application.
 It interprets user inputs and executes actions such as starting or stopping packet sniffing on specified network interfaces,
