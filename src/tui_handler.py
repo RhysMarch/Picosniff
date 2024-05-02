@@ -27,6 +27,7 @@ Dependencies:
 - packet_parser: Utilises functions to parse packets and manage packet counters.
 - packet_sniffer: Calls functionality to begin sniffing packets on designated interfaces.
 """
+import gc
 import time
 from scapy.interfaces import IFACES
 from packet_parser import parser
@@ -78,6 +79,7 @@ class CommandHandler:
 
     async def handle_clear(self, args):
         self.app.output_area.clear()
+        gc.collect()
 
     async def handle_exit(self, args):
         self.app.exit()  # Exit the application
