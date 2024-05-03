@@ -22,7 +22,7 @@ DEFAULT_COLORS = {
     'NTP': 'bright_orange'
 }
 
-INTERFACE_NAME_MAP = {
+MAC_INTERFACE_NAME_MAP = {
     'lo0': 'Loopback (localhost)',
     'en0': 'Ethernet / Wi-Fi (Primary)',
     'en1': 'Ethernet (Secondary)',
@@ -31,11 +31,16 @@ INTERFACE_NAME_MAP = {
     'en4': 'Ethernet (Additional)',
     'en5': 'Ethernet (Additional)',
     'bridge0': 'Thunderbolt Bridge',
-    'ap1': 'Access Point (Wireless)',  # Or a more accurate description if needed
+    'ap1': 'Access Point (Wireless)',
     'awd10': 'Apple Wireless Direct Link',
     'llw0': 'Low-latency WLAN Interface'
 }
 
+LINUX_INTERFACE_NAME_MAP = {
+    'eth0': 'Ethernet 0',
+    'wlan0': 'Wireless LAN',
+    'lo': 'Localhost Loopback'
+}
 
 
 def update_payload_size(size):
