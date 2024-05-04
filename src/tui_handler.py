@@ -101,4 +101,4 @@ class CommandHandler:
 
     def check_for_no_packets(self):
         if parser.packet_counter == 0:
-            self.app.output_area.write("No packets captured. Consider running with administrator/root privileges.\n")
+            self.app.output_area.write("No packets captured. Are you running with administrator/root privileges?\n")
