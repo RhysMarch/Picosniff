@@ -138,7 +138,6 @@ class PacketCountsBarChart(PlotextPlot):
         self.plt.width = 30  # Adjust width as needed
         self.plt.colorless = True
         self.plt.title("Packet Counts by Protocol")
-        self.plt.show_axes = False  # Initially hide both x and y axes
 
     def on_mount(self):
         self.update_chart()
