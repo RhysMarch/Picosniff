@@ -34,8 +34,6 @@ PacketFlowPlot:
 
 """
 import time
-
-from textual.scroll_view import ScrollView
 from textual.widget import Widget
 from rich.table import Table
 from packet_parser import parser
@@ -52,11 +50,17 @@ class PacketCountsTable(Widget):
         self.table.add_column("Protocol", justify="left", style="bright_white")
         self.table.add_column("Count", justify="left", style="bright_white")
 
-        # Assuming packet_counts is a global variable or passed in some way
+        total_packets = 0  # Initialize total packet count
+
+        # Loop through each protocol and count, adding a row for each
         for protocol, count in parser.packet_counts.items():
             self.table.add_row(protocol, str(count))
+            total_packets += count  # Sum up the packet count for the total
 
-        # This tells Textual to refresh this widget
+        # After all individual protocol rows are added, add a total row
+        self.table.add_row("Total", str(total_packets), end_section=True)
+
+        # This method refreshes the widget to display the updated table
         self.refresh()
 
     def render(self):
