@@ -145,12 +145,9 @@ class PacketCountsBarChart(PlotextPlot):
 
     def update_chart(self):
         self.plt.clear_data()
-
-        # Assuming you have packet_counts data from 'packet_parser'
         protocols = [protocol for protocol, _ in parser.packet_counts.items()]
         counts = [count for _, count in parser.packet_counts.items()]
 
         self.plt.bar(protocols, counts)
-        self.plt.ticks_color("bright_white")  # Style adjustments
-        self.plt.show()
+        self.plt.ylim(0, max(counts) + 1 if counts else 1)  # Set Y-axis minimum to 0 and adjust maximum
         self.refresh()
