@@ -34,6 +34,8 @@ PacketFlowPlot:
 
 """
 import time
+
+from textual.scroll_view import ScrollView
 from textual.widget import Widget
 from rich.table import Table
 from packet_parser import parser
@@ -64,6 +66,7 @@ class PacketCountsTable(Widget):
 class PacketFlowPlot(PlotextPlot):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.plt.title("Packet Flow Over Time")
         self.plt.xlabel("Time (seconds)")
         self.plt.ylabel("Packets")
         self.plt.grid = True
@@ -123,3 +126,27 @@ class PacketFlowPlot(PlotextPlot):
                 self.plt.ylim(0, 1)  # Default range to prevent division by zero
 
             self.refresh()
+
+
+class PacketCountsBarChart(PlotextPlot):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.plt.width = 30  # Adjust width as needed
+        self.plt.colorless = True
+        self.plt.title("Packet Counts by Protocol")
+        self.plt.show_axes = False  # Initially hide both x and y axes
+
+    def on_mount(self):
+        self.update_chart()
+
+    def update_chart(self):
+        self.plt.clear_data()
+
+        # Assuming you have packet_counts data from 'packet_parser'
+        protocols = [protocol for protocol, _ in parser.packet_counts.items()]
+        counts = [count for _, count in parser.packet_counts.items()]
+
+        self.plt.bar(protocols, counts)
+        self.plt.ticks_color("bright_white")  # Style adjustments
+        self.plt.show()
+        self.refresh()

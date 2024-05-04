@@ -32,7 +32,7 @@ from textual.containers import Container, VerticalScroll
 from textual.widgets import Static, Input, RichLog
 from utils import ascii_logo, get_interfaces_info
 from tui_handler import handle_command, CommandHandler
-from visualisation import PacketCountsTable, PacketFlowPlot
+from visualisation import PacketCountsTable, PacketFlowPlot, PacketCountsBarChart
 
 
 class PicosniffApp(App):
@@ -56,6 +56,7 @@ class PicosniffApp(App):
                 yield self.input_field
             with VerticalScroll(id="right-pane"):
                 yield PacketFlowPlot(id="packet-flow-plot")  # This displays packet flow over time
+                yield PacketCountsBarChart(id="packet-counts-barchart")  # Add the bar chart here
                 yield PacketCountsTable(id="packet-counts-table")  # This displays packet count by protocol type
             with VerticalScroll(id="bottom-left-pane"):
                 self.output_area = RichLog()
@@ -70,10 +71,13 @@ class PicosniffApp(App):
         await handle_command(self.command_handler, event)
         self.input_field.clear()
 
-    # Add a method to update the packet counts table
     async def update_widgets(self):
         packet_counts_widget = self.query_one(PacketCountsTable)
         packet_counts_widget.refresh_table()
+
+        # Refresh bar chart
+        bar_chart_widget = self.query_one(PacketCountsBarChart)
+        bar_chart_widget.update_chart()
 
 
 if __name__ == "__main__":
