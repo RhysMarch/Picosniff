@@ -54,10 +54,14 @@ class PicosniffApp(App):
                 yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n", id="commands")
                 self.input_field = Input(placeholder="Type a command here")
                 yield self.input_field
-            with VerticalScroll(id="right-pane"):
-                yield PacketFlowPlot(id="packet-flow-plot")  # This displays packet flow over time
-                yield PacketCountsBarChart(id="packet-counts-barchart")  # Add the bar chart here
-                yield PacketCountsTable(id="packet-counts-table")  # This displays packet count by protocol type
+            with Container(id="right-pane"):
+                # Assign each visual component to its own section
+                with VerticalScroll(id="packet-flow-plot-section"):
+                    yield PacketFlowPlot(id="packet-flow-plot")  # This displays packet flow over time
+                with VerticalScroll(id="packet-counts-barchart-section"):
+                    yield PacketCountsBarChart(id="packet-counts-barchart")  # Add the bar chart here
+                with VerticalScroll(id="packet-counts-table-section"):
+                    yield PacketCountsTable(id="packet-counts-table")  # This displays packet count by protocol type
             with VerticalScroll(id="bottom-left-pane"):
                 self.output_area = RichLog()
                 yield self.output_area
