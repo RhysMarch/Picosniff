@@ -74,66 +74,62 @@ class PacketFlowPlot(PlotextPlot):
         self.plt.xlabel("Time (seconds)")
         self.plt.ylabel("Packets")
         self.plt.grid = True
-        self.plt.xlim(0, 60)  # Initial x-axis range for 1 minute
-        self.plt.ylim(0, 10)  # Initial y-axis range
-        self._data = []
-        self._last_plot_time = time.time()  # Track the last time we plotted
-        self._packet_count_last_second = 0
-        self._start_time = time.time()  # Start time for tracking
-        self._tracking_started = False
-        self.refresh()  # Draw initial plot
+        self._last_plot_time = 0
+        self._data = []  # Store data points
+        self._packet_count_last_second = 1
+        self._start_time = None
+        self._tracking_started = False  # Flag to track if time tracking has begun
 
     def on_mount(self):
         self.set_interval(1, self.refresh_graph)
 
     def start_tracking(self):
-        self._tracking_started = True
         self._start_time = time.time()
-        self._last_plot_time = self._start_time
+        self._tracking_started = True
 
     def reset(self):
-        self._tracking_started = False
+        self._start_time = None
         self._data = []
-        self._start_time = time.time()
-        self._last_plot_time = self._start_time
-        self._packet_count_last_second = 0
-        self.plt.xlim(0, 60)
-        self.plt.ylim(0, 10)
-        self.refresh()
+        self._tracking_started = False
+        self.replot()
 
     def refresh_graph(self):
-        self.plt.clear_data()
-        if not self._tracking_started:
-            # Start with a baseline point to maintain axis range
-            self.plt.plot([0], [0])
-            self.plt.xlim(0, 60)
-            self.plt.ylim(0, 10)
-            self.refresh()
-            return
+        if not self._tracking_started:  # Check if tracking is active
+            return  # Do nothing if tracking hasn't begun
 
         current_time = time.time()
-        current_count = parser.packet_counter  # This needs to be provided by your packet capturing logic
+        current_count = parser.packet_counter
 
-        # Calculate packets per second
+        # Start tracking time if not yet started
+        if self._start_time is None:
+            self._start_time = current_time
+
+        # Calculate packets received in the last second
         packets_this_second = current_count - self._packet_count_last_second
         self._data.append((current_time - self._start_time, packets_this_second))
         self._packet_count_last_second = current_count
 
-        # Replot only if necessary
         if current_time - self._last_plot_time >= 1:
             self.replot()
             self._last_plot_time = current_time
 
     def replot(self):
-        self.plt.clear_data()
         if self._data:
-            times, counts = zip(*self._data)
+            self.plt.clear_data()
+            times, counts = zip(*self._data[-60:])  # Keep last 60 seconds of data
+
             self.plt.plot(times, counts)
-            self.plt.xlim(min(times), max(times))
-            self.plt.ylim(0, max(counts) + 10)
-        else:
-            self.plt.plot([], [])
-        self.refresh()
+            if len(times) > 1:
+                self.plt.xlim(min(times), max(times))
+            else:
+                self.plt.xlim(0, 1)  # Default range to prevent division by zero
+
+            if counts:
+                self.plt.ylim(0, max(counts) + 10 if max(counts) > 0 else 1)
+            else:
+                self.plt.ylim(0, 1)  # Default range to prevent division by zero
+
+            self.refresh()
 
 
 class PacketCountsBarChart(PlotextPlot):
