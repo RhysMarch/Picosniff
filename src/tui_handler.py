@@ -74,7 +74,6 @@ class CommandHandler:
 
     async def handle_stop(self, args):
         self.app.sniffing_active = False
-        self.app.output_area.write("Sniffing stopped\n")
         self.app.query_one(PacketFlowPlot).reset()  # Reset the plot
 
     async def handle_clear(self, args):
