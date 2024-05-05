@@ -40,31 +40,45 @@ class PicosniffApp(App):
 
     def __init__(self) -> None:
         super().__init__()
+        self.input_field = Input(placeholder="Type a command here")
+        self.output_area = RichLog()
         self.sniffing_active = False
         self.packet_counts_table = PacketCountsTable()
         self.command_handler = CommandHandler(self)  # Pass the app instance to the command handler
 
     def compose(self) -> ComposeResult:
         with Container(id="app-grid"):
-            with Container(id="top-left-pane"):
+
+            # Top Left Section
+            self.top_left_pane = Container(id="top-left-pane")
+            with self.top_left_pane:
                 interfaces_info = get_interfaces_info()
                 yield Static(ascii_logo(), id="logo")
                 yield Static(interfaces_info, id="interfaces")
+
+            # Middle Left Section
             with VerticalScroll(id="middle-left-pane"):
                 yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n", id="commands")
-                self.input_field = Input(placeholder="Type a command here")
                 yield self.input_field
+
+            # Right Section
             with Container(id="right-pane"):
-                # Assign each visual component to its own section
                 with VerticalScroll(id="packet-flow-plot-section"):
-                    yield PacketFlowPlot(id="packet-flow-plot")  # This displays packet flow over time
+                    yield PacketFlowPlot(id="packet-flow-plot")
                 with VerticalScroll(id="packet-counts-barchart-section"):
-                    yield PacketCountsBarChart(id="packet-counts-barchart")  # Add the bar chart here
+                    yield PacketCountsBarChart(id="packet-counts-barchart")
                 with VerticalScroll(id="packet-counts-table-section"):
-                    yield PacketCountsTable(id="packet-counts-table")  # This displays packet count by protocol type
+                    yield PacketCountsTable(id="packet-counts-table")
+
+            # Bottom Left Section
             with VerticalScroll(id="bottom-left-pane"):
-                self.output_area = RichLog()
                 yield self.output_area
+
+    def hide_top_left_pane(self):
+        self.top_left_pane.display = False
+
+    def show_top_left_pane(self):
+        self.top_left_pane.display = True
 
     async def on_mount(self):
         self.input_field.focus()

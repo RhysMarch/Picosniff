@@ -69,6 +69,7 @@ class CommandHandler:
         if 0 < iface_index <= len(IFACES):
             iface_name = IFACES[list(IFACES.keys())[iface_index - 1]].name
             self.start_sniffing_on_interface(iface_name)
+            self.app.hide_top_left_pane()  # Hide top left pane when sniffing starts
         else:
             self.app.output_area.write("Invalid interface index\n")
 
@@ -78,6 +79,7 @@ class CommandHandler:
 
     async def handle_clear(self, args):
         self.app.output_area.clear()
+        self.app.show_top_left_pane()  # Show top left pane when sniffing stops
         gc.collect()
 
     async def handle_exit(self, args):
