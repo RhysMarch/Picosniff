@@ -2,25 +2,22 @@
     layout: grid;
     grid-size: 1;
     grid-columns: 1fr 1fr; /* Two columns */
-    grid-rows: auto 1fr 1fr; /* Three rows, sizes adjusted by content */
+    grid-rows: auto 1fr 2fr; /* Three rows, sizes adjusted by content */
 }
 
 #top-left-pane {
-    overflow-y: scroll;
+    overflow-y: auto;
     border: round dodgerblue;
     content-align-horizontal: center;
-    height: auto;
 }
 
 #middle-left-pane {
     width: 100%;
     border: round dodgerblue;
-    height: auto;
 }
 
 #bottom-left-pane {
     width: 100%;
-    height: auto;
     border: round dodgerblue;
 }
 
