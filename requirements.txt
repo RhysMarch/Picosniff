@@ -3,4 +3,4 @@ rich
 textual
 plotext
 textual_plotext
-whois
+python-whois
