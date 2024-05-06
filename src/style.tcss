@@ -1,63 +1,33 @@
-#app-grid {
-    layout: grid;
-    grid-size: 1;
-    grid-columns: 1fr 1fr; /* Two columns */
-    grid-rows: auto 1fr 2fr; /* Three rows, sizes adjusted by content */
+#left-section {
+    width: 0.75fr;
 }
 
 #top-left-pane {
     overflow-y: auto;
     border: round dodgerblue;
-    content-align-horizontal: center;
+    max-height: 13;
 }
 
 #middle-left-pane {
-    width: 100%;
     border: round dodgerblue;
+    height: auto;
 }
 
 #bottom-left-pane {
-    width: 100%;
     border: round dodgerblue;
 }
 
 #right-pane {
     overflow-y: auto;
-    dock: right;
-    row-span: 3;
-    height: 100%;
-    width: 60%;
+    width: 1fr;
     border: round dodgerblue;
-    margin-left: 2;
 }
 
-#logo {
+#logo, #commands {
     content-align-horizontal: center;
 }
 
-#commands {
-    content-align-horizontal: center;
-}
-
-#packet-counts-table {
-    content-align-horizontal: left;
-    /* top, right, bottom, left */
-    padding: 1 1 0 1;
-}
-
-#packet-flow-plot {
-    content-align-horizontal: center;
-    /* top, right, bottom, left */
-    padding: 0 1 0 1;
-}
-
-#packet-counts-barchart {
-    content-align-horizontal: center;
-    /* top, right, bottom, left */
-    padding: 1 1 0 1;
-}
-
-#packet-flow-plot-section, #packet-counts-barchart-section, #packet-counts-table-section {
-    height: 50%; /* Make sure each section takes full available space */
-    overflow-y: auto; /* Scroll appears only when necessary */
+#packet-flow-plot, #packet-counts-barchart, #packet-counts-table {
+    height: 50%; /* Distribute height equally or adjust as needed */
+    padding: 0 2 2 2;
 }

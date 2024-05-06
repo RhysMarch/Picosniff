@@ -28,7 +28,7 @@ Dependencies:
 """
 from textual import on
 from textual.app import App, ComposeResult
-from textual.containers import Container, VerticalScroll
+from textual.containers import VerticalScroll, Horizontal, Vertical
 from textual.widgets import Static, Input, RichLog
 from utils import ascii_logo, get_interfaces_info
 from tui_handler import handle_command, CommandHandler
@@ -47,38 +47,35 @@ class PicosniffApp(App):
         self.command_handler = CommandHandler(self)  # Pass the app instance to the command handler
 
     def compose(self) -> ComposeResult:
-        with Container(id="app-grid"):
+        with Horizontal():
+            with Vertical(id="left-section"):
+                # Top Left Pane (for logo and network interface(s) display)
+                with VerticalScroll(id="top-left-pane"):
+                    yield Static(ascii_logo(), id="logo")
+                    yield Static(get_interfaces_info())
 
-            # Top Left Section
-            self.top_left_pane = Container(id="top-left-pane")
-            with self.top_left_pane:
-                interfaces_info = get_interfaces_info()
-                yield Static(ascii_logo(), id="logo")
-                yield Static(interfaces_info, id="interfaces")
+                # Middle Left Pane (for command input)
+                with Vertical(id="middle-left-pane"):
+                    yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n", id="commands")
+                    yield self.input_field
 
-            # Middle Left Section
-            with VerticalScroll(id="middle-left-pane"):
-                yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n", id="commands")
-                yield self.input_field
+                # Bottom Left Pane (for output)
+                with VerticalScroll(id="bottom-left-pane"):
+                    yield self.output_area
 
-            # Right Section
-            with Container(id="right-pane"):
-                with VerticalScroll(id="packet-flow-plot-section"):
-                    yield PacketFlowPlot(id="packet-flow-plot")
-                with VerticalScroll(id="packet-counts-barchart-section"):
-                    yield PacketCountsBarChart(id="packet-counts-barchart")
-                with VerticalScroll(id="packet-counts-table-section"):
-                    yield PacketCountsTable(id="packet-counts-table")
+            # Right Pane (dedicated to visualisations)
+            with VerticalScroll(id="right-pane"):
+                yield PacketFlowPlot(id="packet-flow-plot")
+                yield PacketCountsBarChart(id="packet-counts-barchart")
+                yield PacketCountsTable(id="packet-counts-table")
 
-            # Bottom Left Section
-            with VerticalScroll(id="bottom-left-pane"):
-                yield self.output_area
+    def hide_interfaces(self) -> None:
+        top_left_pane = self.query_one("#top-left-pane")
+        top_left_pane.display = not top_left_pane.display
 
-    def hide_top_left_pane(self):
-        self.top_left_pane.display = False
-
-    def show_top_left_pane(self):
-        self.top_left_pane.display = True
+    def show_interfaces(self) -> None:
+        top_left_pane = self.query_one("#top-left-pane")
+        top_left_pane.display = True
 
     async def on_mount(self):
         self.input_field.focus()
@@ -93,7 +90,6 @@ class PicosniffApp(App):
         packet_counts_widget = self.query_one(PacketCountsTable)
         packet_counts_widget.refresh_table()
 
-        # Refresh bar chart
         bar_chart_widget = self.query_one(PacketCountsBarChart)
         bar_chart_widget.update_chart()
 
