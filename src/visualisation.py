@@ -7,35 +7,36 @@ to display packet traffic statistics and a real-time packet flow plot in a termi
 Classes:
 - PacketCountsTable: A Textual widget that displays a table of packet counts by protocol.
 - PacketFlowPlot: A Textual widget that uses the Plotext library to plot packet flow over time.
+- PacketCountsBarChart: A Textual widget that displays a bar chart of packet counts by protocol.
+- IPDistributionTable:  A Textual widget that displays a table of IP addresses, their packet
+   counts, and WHOIS information. It distinguishes between local/private IPs and public IPs.
 
-The PacketCountsTable widget shows the number of packets captured for each network protocol, updating
-in real-time as new data is received. The PacketFlowPlot widget graphs the rate of packets received over
-time, providing a visual representation of network activity.
-
-Usage:
-The widgets are intended to be integrated with the main Textual application interface of Picosniff.
-They are dynamically updated and provide the user with real-time data visualisation of network traffic.
+Features:
+- Dynamic updates:  The widgets update in real-time as new packet data is received.
+- Data reset: The widgets are automatically reset when a new packet sniffing session begins.
+- Local IP identification: The IPDistributionTable highlights IP addresses that belong to the local machine.
+- Informative WHOIS lookups: Provides organization, country, and email information (when available) for public IP addresses.
 
 Dependencies:
 - Textual: Used to create the UI components in a terminal-based environment.
 - Plotext: Utilised for plotting real-time data within the terminal.
 - packet_parser: Provides the data needed by fetching packet counts and other metrics.
+- ipaddress:  Used for classifying IP addresses.
+- python-whois: Used to perform WHOIS lookups.
+- threading: Used to update the WHOIs information on the table.
+- socket: Used to identify local IP.
 
-Examples:
-Widgets from this module are instantiated and managed within the Picosniff Textual application. They
-are not standalone and require packet data provided by packet_parser to function correctly.
-
-PacketCountsTable:
-- Displays real-time updates of packet counts for various network protocols such as IP, TCP, etc.
-
-PacketFlowPlot:
-- Plots the number of packets received over time on a graph with time on the X-axis and packet count on the Y-axis.
-- Starts and stops tracking based on user interaction with the main application to control packet sniffing.
+Usage:
+The widgets are intended to be integrated with the main Textual application interface of Picosniff.
+They are dynamically updated and provide the user with real-time data visualisation of network traffic.
 
 """
-
-from collections import Counter
 import time
+import whois
+import threading
+import socket
+import ipaddress
+from collections import Counter, defaultdict
 from textual.widget import Widget
 from rich.table import Table
 from packet_parser import parser
@@ -155,20 +156,70 @@ class PacketCountsBarChart(PlotextPlot):
 
 
 class IPDistributionTable(Widget):
-    def on_mount(self):
-        self.refresh_table()  # Initialize on mount
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.local_ip = get_local_ip()
+        self.whois_cache = defaultdict(lambda: 'Fetching...')
+        self.init_table()
 
-    def refresh_table(self):
-        self.table = Table(style="#1e90ff")
+    def init_table(self):
+        self.table = Table(title="IP Distribution", style="#1e90ff")
         self.table.add_column("IP Address", justify="left", style="bright_white")
         self.table.add_column("Count", justify="left", style="bright_white")
+        self.table.add_column("IP Info", justify="left", style="bright_white")
 
+    def on_mount(self):
+        self.refresh_table()
+
+    def refresh_table(self):
+        self.init_table()  # Clear the existing table before refreshing
         if parser.ip_distribution:
-            ip_counts = Counter(parser.ip_distribution.keys())
-            for ip, count in sorted(parser.ip_distribution.items(), key=lambda item: item[1], reverse=True)[:10]:
-                self.table.add_row(ip, str(count))
+            ip_counts = Counter(parser.ip_distribution)
+            for ip, count in sorted(ip_counts.items(), key=lambda item: item[1], reverse=True)[:15]:
+                if ip not in self.whois_cache:
+                    threading.Thread(target=self.fetch_whois_info, args=(ip,)).start()
 
-        self.refresh()  # Update the display
+                # Add (Yours) if the IP matches the local IP
+                ip_label = ip + (" (Yours)" if ip == self.local_ip else "")
+                self.table.add_row(ip_label, str(count), self.whois_cache[ip])
+
+        self.refresh()
+
+    def reset(self):  # Add a reset method
+        self.whois_cache.clear()
+        parser.ip_distribution.clear()  # Clear the IP distribution data in your parser
+        self.refresh_table()
+
+    def fetch_whois_info(self, ip):
+        try:
+            ip_obj = ipaddress.ip_address(ip)
+            if ip_obj.is_loopback:
+                info = "Loopback IP"
+            elif ip_obj.is_private:
+                info = "Private Network IP"
+            elif ip_obj.is_multicast:
+                info = "Multicast Network IP"
+            elif ip_obj.is_reserved:
+                info = "Reserved IP"
+            else:
+                w = whois.whois(ip)
+                info = f"{w.get('org', 'No organization found')}, {w.get('country')}, {w.get('emails')[0] if w.get('emails') else 'No email found'}"
+            self.whois_cache[ip] = info
+        except Exception:
+            self.whois_cache[ip] = "WHOIS lookup failed"
 
     def render(self):
         return self.table
+
+
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0)
+        # Use Google's Public DNS server IP to find the local endpoint
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except Exception:
+        return "127.0.0.1"  # Default to localhost if unable to determine
