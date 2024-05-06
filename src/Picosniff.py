@@ -32,7 +32,7 @@ from textual.containers import VerticalScroll, Horizontal, Vertical
 from textual.widgets import Static, Input, RichLog
 from utils import ascii_logo, get_interfaces_info
 from tui_handler import handle_command, CommandHandler
-from visualisation import PacketCountsTable, PacketFlowPlot, PacketCountsBarChart
+from visualisation import PacketCountsTable, PacketFlowPlot, PacketCountsBarChart, IPDistributionTable
 
 
 class PicosniffApp(App):
@@ -56,7 +56,8 @@ class PicosniffApp(App):
 
                 # Middle Left Pane (for command input)
                 with Vertical(id="middle-left-pane"):
-                    yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n", id="commands")
+                    yield Static(" Commands: 'sniff', 'stop', 'clear', 'help', 'settings', 'save', 'exit'\n",
+                                 id="commands")
                     yield self.input_field
 
                 # Bottom Left Pane (for output)
@@ -66,8 +67,10 @@ class PicosniffApp(App):
             # Right Pane (dedicated to visualisations)
             with VerticalScroll(id="right-pane"):
                 yield PacketFlowPlot(id="packet-flow-plot")
-                yield PacketCountsBarChart(id="packet-counts-barchart")
-                yield PacketCountsTable(id="packet-counts-table")
+                with Horizontal(id="second-row"):
+                    yield PacketCountsBarChart(id="packet-counts-barchart")
+                    yield PacketCountsTable(id="packet-counts-table")
+                yield IPDistributionTable(id="ip-distribution")
 
     def hide_interfaces(self) -> None:
         top_left_pane = self.query_one("#top-left-pane")
@@ -92,6 +95,9 @@ class PicosniffApp(App):
 
         bar_chart_widget = self.query_one(PacketCountsBarChart)
         bar_chart_widget.update_chart()
+
+        ip_distribution_chart = self.query_one(IPDistributionTable)
+        ip_distribution_chart.refresh_table()
 
 
 if __name__ == "__main__":

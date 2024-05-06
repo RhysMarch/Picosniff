@@ -33,6 +33,8 @@ PacketFlowPlot:
 - Starts and stops tracking based on user interaction with the main application to control packet sniffing.
 
 """
+
+from collections import Counter
 import time
 from textual.widget import Widget
 from rich.table import Table
@@ -150,3 +152,23 @@ class PacketCountsBarChart(PlotextPlot):
         self.plt.bar(protocols, counts)
         self.plt.ylim(0, max(counts) + 1 if counts else 1)  # Set Y-axis minimum to 0 and adjust maximum
         self.refresh()
+
+
+class IPDistributionTable(Widget):
+    def on_mount(self):
+        self.refresh_table()  # Initialize on mount
+
+    def refresh_table(self):
+        self.table = Table(style="#1e90ff")
+        self.table.add_column("IP Address", justify="left", style="bright_white")
+        self.table.add_column("Count", justify="left", style="bright_white")
+
+        if parser.ip_distribution:
+            ip_counts = Counter(parser.ip_distribution.keys())
+            for ip, count in sorted(parser.ip_distribution.items(), key=lambda item: item[1], reverse=True)[:10]:
+                self.table.add_row(ip, str(count))
+
+        self.refresh()  # Update the display
+
+    def render(self):
+        return self.table

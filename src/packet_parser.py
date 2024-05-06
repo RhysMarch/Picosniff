@@ -35,6 +35,7 @@ Example:
 To use parse_packet function, ensure you provide a packet object received from Scapy, a callback function to handle strings of formatted packet summaries,
 and a start time for relative timing information.
 """
+from collections import defaultdict
 from scapy.all import Raw, hexdump
 from settings import DEFAULT_PAYLOAD_SIZE, DEFAULT_COLORS
 from scapy.layers.inet import TCP, UDP, IP
@@ -50,6 +51,7 @@ class PacketParser:
     def __init__(self):
         self.start_time = time.time()  # Initialise upon object creation
         self.packet_counter = 0
+        self.ip_distribution = defaultdict(int)
         self.packet_counts = {
             'IP': 0,
             'TCP': 0,
@@ -71,6 +73,8 @@ class PacketParser:
         if packet.haslayer(IP):
             self.packet_counter += 1
             self.packet_counts['IP'] += 1
+            self.ip_distribution[packet[IP].src] += 1
+            self.ip_distribution[packet[IP].dst] += 1
             ip_summary = f"[{self.packet_counter}] ({timestamp:.2f}) IP: {packet[IP].src} -> {packet[IP].dst}"
             output_callback(Text(ip_summary, style=DEFAULT_COLORS['IP']))
             handle_payload(packet, output_callback, 'IP')

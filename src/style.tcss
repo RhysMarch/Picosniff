@@ -27,7 +27,26 @@
     content-align-horizontal: center;
 }
 
-#packet-flow-plot, #packet-counts-barchart, #packet-counts-table {
-    height: 50%; /* Distribute height equally or adjust as needed */
-    padding: 0 2 2 2;
+#packet-flow-plot {
+    padding: 1 2 2 2;
+    height: 55%;
+}
+
+#packet-counts-barchart {
+    width: 80%;
+    padding: 0 2 0 2;
+}
+
+#second-row {
+    height: auto;
+    max-height: 40%;
+}
+
+#packet-counts-table {
+    width: auto;
+    padding: 1 0 0 0;
+}
+
+#ip-distribution {
+    padding: 4 0 0 2;
 }
