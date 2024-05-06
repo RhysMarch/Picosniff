@@ -49,4 +49,5 @@
 
 #ip-distribution {
     padding: 4 0 0 2;
+    content-align-horizontal: center;
 }

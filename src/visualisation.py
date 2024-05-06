@@ -49,7 +49,7 @@ class PacketCountsTable(Widget):
         self.refresh_table()
 
     def refresh_table(self):
-        self.table = Table(title="", style="#1e90ff")
+        self.table = Table(title="", style="#539eff")
         self.table.add_column("Protocol", justify="left", style="bright_white")
         self.table.add_column("Count", justify="left", style="bright_white")
 
@@ -163,7 +163,7 @@ class IPDistributionTable(Widget):
         self.init_table()
 
     def init_table(self):
-        self.table = Table(title="IP Distribution", style="#1e90ff")
+        self.table = Table(title="IP Distribution", style="#539EFF")
         self.table.add_column("IP Address", justify="left", style="bright_white")
         self.table.add_column("Count", justify="left", style="bright_white")
         self.table.add_column("IP Info [dim](org, country, email)[/]", justify="left", style="bright_white")
@@ -180,12 +180,10 @@ class IPDistributionTable(Widget):
                     threading.Thread(target=self.fetch_whois_info, args=(ip,)).start()
 
                 # Add (Yours) if the IP matches the local IP
-                ip_label = ip + (" (Yours)" if ip == self.local_ip else "")
+                ip_label = ip + (" [purple](Yours)" if ip == self.local_ip else "")
                 self.table.add_row(ip_label, str(count), self.whois_cache[ip])
 
         self.refresh()
-
-
 
     def reset(self):  # Add a reset method
         self.whois_cache.clear()
