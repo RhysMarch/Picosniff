@@ -166,7 +166,7 @@ class IPDistributionTable(Widget):
         self.table = Table(title="IP Distribution", style="#1e90ff")
         self.table.add_column("IP Address", justify="left", style="bright_white")
         self.table.add_column("Count", justify="left", style="bright_white")
-        self.table.add_column("IP Info", justify="left", style="bright_white")
+        self.table.add_column("IP Info [dim](org, country, email)[/]", justify="left", style="bright_white")
 
     def on_mount(self):
         self.refresh_table()
