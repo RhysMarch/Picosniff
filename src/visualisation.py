@@ -185,6 +185,8 @@ class IPDistributionTable(Widget):
 
         self.refresh()
 
+
+
     def reset(self):  # Add a reset method
         self.whois_cache.clear()
         parser.ip_distribution.clear()  # Clear the IP distribution data in your parser
@@ -194,7 +196,7 @@ class IPDistributionTable(Widget):
         try:
             ip_obj = ipaddress.ip_address(ip)
             if ip_obj.is_loopback:
-                info = "Loopback IP"
+                info = f"[dim]Loopback IP"
             elif ip_obj.is_private:
                 info = "Private Network IP"
             elif ip_obj.is_multicast:
@@ -203,7 +205,11 @@ class IPDistributionTable(Widget):
                 info = "Reserved IP"
             else:
                 w = whois.whois(ip)
-                info = f"{w.get('org', 'No organization found')}, {w.get('country')}, {w.get('emails')[0] if w.get('emails') else 'No email found'}"
+                # Apply Rich Styles
+                org = f"[bold cyan]{w.get('org', 'No organization found')}[/]"
+                country = f"[dim]{w.get('country')}[/]"
+                email = f"[yellow]{w.get('emails')[0]}[/]" if w.get('emails') else 'No email found'
+                info = f"{org}, {country}, {email}"
             self.whois_cache[ip] = info
         except Exception:
             self.whois_cache[ip] = "WHOIS lookup failed"
