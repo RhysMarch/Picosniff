@@ -35,6 +35,7 @@ Example:
 To use parse_packet function, ensure you provide a packet object received from Scapy, a callback function to handle strings of formatted packet summaries,
 and a start time for relative timing information.
 """
+import textwrap
 from collections import defaultdict
 from scapy.all import Raw, hexdump
 from settings import DEFAULT_PAYLOAD_SIZE, DEFAULT_COLORS
@@ -173,40 +174,63 @@ def handle_payload(packet, output_callback, protocol):
 
 
 def parse_dns_details(dns_layer):
+    wrapper = textwrap.TextWrapper(width=70, subsequent_indent='  ')
     dns_details = "DNS Queries and Answers:\n"
     if dns_layer.qr == 0:  # Query
         dns_details += "Questions:\n"
         for q in dns_layer.qd:
-            dns_details += f"  - {q.qname.decode() if hasattr(q.qname, 'decode') else q.qname}"
+            question = f"  - {q.qname.decode() if hasattr(q.qname, 'decode') else q.qname}"
+            dns_details += '\n'.join(wrapper.wrap(question)) + '\n'
     else:  # Response
         dns_details += "Answers:\n"
         for a in dns_layer.an:
-            dns_details += f"  - {a.rrname.decode() if hasattr(a.rrname, 'decode') else a.rrname} -> {a.rdata}"
+            answer = f"  - {a.rrname.decode() if hasattr(a.rrname, 'decode') else a.rrname} -> {a.rdata}"
+            dns_details += '\n'.join(wrapper.wrap(answer)) + '\n'
+    if dns_details.endswith('\n'):
+        dns_details = dns_details[:-1]  # Remove the last newline if present
     return dns_details
 
 
 def parse_dhcp_details(dhcp_layer):
+    wrapper = textwrap.TextWrapper(width=70, subsequent_indent='  ')
     dhcp_details = "DHCP Options:\n"
     for option in dhcp_layer.options:
         if option[0] == 'end':
             break
-        dhcp_details += f"  - {option[0]}: {option[1]}"
+        option_detail = f"  - {option[0]}: {option[1]}"
+        dhcp_details += '\n'.join(wrapper.wrap(option_detail)) + '\n'
+    if dhcp_details.endswith('\n'):
+        dhcp_details = dhcp_details[:-1]  # Remove the last newline if present
     return dhcp_details
 
 
 def parse_http_details(http_packet):
+    wrapper = textwrap.TextWrapper(width=70, subsequent_indent='  ')
     http_details = ""
     if http_packet.haslayer(HTTPRequest):
         request = http_packet[HTTPRequest]
-        http_details += f"HTTP Request:\n  Method: {request.Method.decode()}\n  Path: {request.Path.decode()}\n  Host: {request.Host.decode()}"
+        http_details += "HTTP Request:\n"
+        details = f"  Method: {request.Method.decode()}\n  Path: {request.Path.decode()}\n  Host: {request.Host.decode()}\n"
+        http_details += '\n'.join(wrapper.wrap(details)) + '\n'
     if http_packet.haslayer(HTTPResponse):
         response = http_packet[HTTPResponse]
-        http_details += f"HTTP Response:\n  Status Code: {response.Status_Code.decode()}\n  Reason: {response.Reason_Phrase.decode()}"
+        if http_details:
+            http_details += '\n'  # Only add a newline if there's already request info
+        http_details += "HTTP Response:\n"
+        details = f"  Status Code: {response.Status_Code.decode()}\n  Reason: {response.Reason_Phrase.decode()}\n"
+        http_details += '\n'.join(wrapper.wrap(details))
+    if http_details.endswith('\n'):
+        http_details = http_details[:-1]  # Remove the last newline if present
     return http_details
 
 
 def parse_ntp_details(ntp_layer):
-    ntp_details = f"NTP Message:\n  Leap Indicator: {ntp_layer.leap}\n  Version: {ntp_layer.version}\n  Mode: {ntp_layer.mode}"
+    wrapper = textwrap.TextWrapper(width=70, subsequent_indent='  ')
+    ntp_details = "NTP Message:\n"
+    details = f"  Leap Indicator: {ntp_layer.leap}\n  Version: {ntp_layer.version}\n  Mode: {ntp_layer.mode}\n"
+    ntp_details += '\n'.join(wrapper.wrap(details))
+    if ntp_details.endswith('\n'):
+        ntp_details = ntp_details[:-1]  # Remove the last newline if present
     return ntp_details
 
 
