@@ -9,7 +9,7 @@ network traffic and detecting potential network threats.
 ## Features
 
 - **Real-Time Packet Sniffing**: Capture and analyse network traffic as it happens.
-- **Command-Line Interface**: Simple and intuitive commands for operating the sniffer and configuring settings.
+- **Textual User Interface**: Simple and intuitive commands for operating the sniffer and configuring settings.
 - **Data Visualization**: Graphical representation of network traffic flow and patterns.
 - **Attack Detection**: Basic mechanisms to detect common network threats such as DDoS attacks.
 
