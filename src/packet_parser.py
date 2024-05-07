@@ -63,67 +63,79 @@ class PacketParser:
         }
 
     def parse_packet(self, packet, output_callback):
-        current_time = time.time()
-        if self.start_time is None or current_time < self.start_time:
-            self.start_time = current_time
+        try:
+            current_time = time.time()
+            if self.start_time is None or current_time < self.start_time:
+                self.start_time = current_time
 
-        timestamp = current_time - self.start_time
+            timestamp = current_time - self.start_time
 
-        # IP Layer Parsing
-        if packet.haslayer(IP):
-            self.packet_counter += 1
-            self.packet_counts['IP'] += 1
-            self.ip_distribution[packet[IP].src] += 1
-            self.ip_distribution[packet[IP].dst] += 1
-            ip_summary = f"[{self.packet_counter}] ({timestamp:.2f}) IP: {packet[IP].src} -> {packet[IP].dst}"
-            output_callback(Text(ip_summary, style=DEFAULT_COLORS['IP']))
-            handle_payload(packet, output_callback, 'IP')
+            if packet.haslayer(IP):
+                self._handle_ip_layer(packet, output_callback, timestamp)
+            if packet.haslayer(TCP):
+                self._handle_tcp_layer(packet, output_callback, timestamp)
+            if packet.haslayer(UDP):
+                self._handle_udp_layer(packet, output_callback, timestamp)
+            if packet.haslayer(DNS):
+                self._handle_dns_layer(packet, output_callback, timestamp)
+            if packet.haslayer(DHCP):
+                self._handle_dhcp_layer(packet, output_callback, timestamp)
+            if packet.haslayer(HTTPRequest) or packet.haslayer(HTTPResponse):
+                self._handle_http_layer(packet, output_callback, timestamp)
+            if packet.haslayer(NTP):
+                self._handle_ntp_layer(packet, output_callback, timestamp)
 
-        # TCP Layer Parsing
-        if packet.haslayer(TCP):
-            self.packet_counter += 1
-            self.packet_counts['TCP'] += 1
-            tcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) TCP: {packet[TCP].sport} -> {packet[TCP].dport}"
-            output_callback(Text(tcp_summary, style=DEFAULT_COLORS['TCP']))
-            handle_payload(packet, output_callback, 'TCP')
+        except Exception as e:
+            output_callback(Text(f"Error processing packet: {e}", style="bold red"))
 
-        # UDP Layer Parsing
-        if packet.haslayer(UDP):
-            self.packet_counter += 1
-            self.packet_counts['UDP'] += 1
-            udp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) UDP: {packet[UDP].sport} -> {packet[UDP].dport}"
-            output_callback(Text(udp_summary, style=DEFAULT_COLORS['UDP']))
-            handle_payload(packet, output_callback, 'UDP')
+    def _handle_ip_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['IP'] += 1
+        self.ip_distribution[packet[IP].src] += 1
+        self.ip_distribution[packet[IP].dst] += 1
+        ip_summary = f"[{self.packet_counter}] ({timestamp:.2f}) IP: {packet[IP].src} -> {packet[IP].dst}"
+        output_callback(Text(ip_summary, style=DEFAULT_COLORS['IP']))
+        handle_payload(packet, output_callback, 'IP')
 
-        # DNS Layer Parsing
-        if packet.haslayer(DNS):
-            self.packet_counter += 1
-            self.packet_counts['DNS'] += 1
-            dns_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DNS Queries: {' '.join(q.qname.decode() for q in packet[DNS].qd)}" if \
-                packet[DNS].qd else "DNS Queries: No Queries"
-            output_callback(Text(dns_summary, style=DEFAULT_COLORS['DNS']))
+    def _handle_tcp_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['TCP'] += 1
+        tcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) TCP: {packet[TCP].sport} -> {packet[TCP].dport}"
+        output_callback(Text(tcp_summary, style=DEFAULT_COLORS['TCP']))
+        handle_payload(packet, output_callback, 'TCP')
 
-        # DHCP Layer Parsing
-        if packet.haslayer(DHCP):
-            self.packet_counter += 1
-            self.packet_counts['DHCP'] += 1
-            dhcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DHCP: {packet[DHCP].options}"
-            output_callback(Text(dhcp_summary, style=DEFAULT_COLORS['DHCP']))
+    def _handle_udp_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['UDP'] += 1
+        udp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) UDP: {packet[UDP].sport} -> {packet[UDP].dport}"
+        output_callback(Text(udp_summary, style=DEFAULT_COLORS['UDP']))
+        handle_payload(packet, output_callback, 'UDP')
 
-        # HTTP Layer Parsing
-        if packet.haslayer(HTTPRequest) or packet.haslayer(HTTPResponse):
-            self.packet_counter += 1
-            self.packet_counts['HTTP'] += 1
-            http_layer = packet[HTTPRequest] if packet.haslayer(HTTPRequest) else packet[HTTPResponse]
-            http_summary = f"[{self.packet_counter}] ({timestamp:.2f}) HTTP: {http_layer.Method.decode()} {http_layer.Path.decode()}"
-            output_callback(Text(http_summary, style=DEFAULT_COLORS['HTTP']))
+    def _handle_dns_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['DNS'] += 1
+        dns_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DNS Queries: {' '.join(q.qname.decode() for q in packet[DNS].qd)}" if \
+            packet[DNS].qd else "DNS Queries: No Queries"
+        output_callback(Text(dns_summary, style=DEFAULT_COLORS['DNS']))
 
-        # NTP Layer Parsing
-        if packet.haslayer(NTP):
-            self.packet_counter += 1
-            self.packet_counts['NTP'] += 1
-            ntp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) NTP Version: {packet[NTP].version}"
-            output_callback(Text(ntp_summary, style=DEFAULT_COLORS['NTP']))
+    def _handle_dhcp_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['DHCP'] += 1
+        dhcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DHCP: {packet[DHCP].options}"
+        output_callback(Text(dhcp_summary, style=DEFAULT_COLORS['DHCP']))
+
+    def _handle_http_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['HTTP'] += 1
+        http_layer = packet[HTTPRequest] if packet.haslayer(HTTPRequest) else packet[HTTPResponse]
+        http_summary = f"[{self.packet_counter}] ({timestamp:.2f}) HTTP: {http_layer.Method.decode()} {http_layer.Path.decode()}"
+        output_callback(Text(http_summary, style=DEFAULT_COLORS['HTTP']))
+
+    def _handle_ntp_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['NTP'] += 1
+        ntp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) NTP Version: {packet[NTP].version}"
+        output_callback(Text(ntp_summary, style=DEFAULT_COLORS['NTP']))
 
     @staticmethod
     def reset_packet_counts():
