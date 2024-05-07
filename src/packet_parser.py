@@ -3,14 +3,15 @@ packet_parser.py
 
 This module provides functionalities for parsing network packets captured via Scapy.
 It supports multiple protocols including IP, TCP, UDP, DNS, DHCP, HTTP, and NTP. The
-module updates global counters and statistics based on the traffic observed and
-formats this data into human-readable summaries using the Rich library for display
-purposes.
+module keeps track of packet counts for different protocols and formats packet
+data into human-readable summaries using the Rich library for display purposes.
 
 Features:
-- Detailed parsing of packets with support for various network layers and protocols.
-- Tracking of packet counts for different protocols, which can be displayed and reset.
-- Formatting packet data for display, including hex dumps of payloads for detailed inspection.
+- Parses packets with support for various network layers and protocols.
+- Tracks packet counts for different protocols, with options to display and reset.
+- Formats packet data for enhanced readability, including hex dumps of payloads and text wrapping.
+- Handles HTTP and non-HTTP packets gracefully.
+- Provides informative summaries even when some HTTP attributes are missing.
 
 Functions:
 - parse_packet(packet, output_callback, start_time): Analyses the packet and uses the output_callback to display formatted information.
