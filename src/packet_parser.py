@@ -177,11 +177,11 @@ def parse_dns_details(dns_layer):
     if dns_layer.qr == 0:  # Query
         dns_details += "Questions:\n"
         for q in dns_layer.qd:
-            dns_details += f"  - {q.qname.decode() if hasattr(q.qname, 'decode') else q.qname}\n"
+            dns_details += f"  - {q.qname.decode() if hasattr(q.qname, 'decode') else q.qname}"
     else:  # Response
         dns_details += "Answers:\n"
         for a in dns_layer.an:
-            dns_details += f"  - {a.rrname.decode() if hasattr(a.rrname, 'decode') else a.rrname} -> {a.rdata}\n"
+            dns_details += f"  - {a.rrname.decode() if hasattr(a.rrname, 'decode') else a.rrname} -> {a.rdata}"
     return dns_details
 
 
@@ -190,7 +190,7 @@ def parse_dhcp_details(dhcp_layer):
     for option in dhcp_layer.options:
         if option[0] == 'end':
             break
-        dhcp_details += f"  - {option[0]}: {option[1]}\n"
+        dhcp_details += f"  - {option[0]}: {option[1]}"
     return dhcp_details
 
 
@@ -198,15 +198,15 @@ def parse_http_details(http_packet):
     http_details = ""
     if http_packet.haslayer(HTTPRequest):
         request = http_packet[HTTPRequest]
-        http_details += f"HTTP Request:\n  Method: {request.Method.decode()}\n  Path: {request.Path.decode()}\n  Host: {request.Host.decode()}\n"
+        http_details += f"HTTP Request:\n  Method: {request.Method.decode()}\n  Path: {request.Path.decode()}\n  Host: {request.Host.decode()}"
     if http_packet.haslayer(HTTPResponse):
         response = http_packet[HTTPResponse]
-        http_details += f"HTTP Response:\n  Status Code: {response.Status_Code.decode()}\n  Reason: {response.Reason_Phrase.decode()}\n"
+        http_details += f"HTTP Response:\n  Status Code: {response.Status_Code.decode()}\n  Reason: {response.Reason_Phrase.decode()}"
     return http_details
 
 
 def parse_ntp_details(ntp_layer):
-    ntp_details = f"NTP Message:\n  Leap Indicator: {ntp_layer.leap}\n  Version: {ntp_layer.version}\n  Mode: {ntp_layer.mode}\n"
+    ntp_details = f"NTP Message:\n  Leap Indicator: {ntp_layer.leap}\n  Version: {ntp_layer.version}\n  Mode: {ntp_layer.mode}"
     return ntp_details
 
 
