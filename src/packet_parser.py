@@ -130,10 +130,15 @@ class PacketParser:
     def _handle_http_layer(self, packet, output_callback, timestamp):
         self.packet_counter += 1
         self.packet_counts['HTTP'] += 1
-        http_layer = packet[HTTPRequest] if packet.haslayer(HTTPRequest) else packet[HTTPResponse]
-        http_summary = f"[{self.packet_counter}] ({timestamp:.2f}) HTTP: {http_layer.Method.decode()} {http_layer.Path.decode()}"
-        output_callback(Text(http_summary, style=DEFAULT_COLORS['HTTP']))
-        handle_payload(packet, output_callback, 'HTTP')
+
+        if packet.haslayer(HTTPRequest) or packet.haslayer(HTTPResponse):
+            http_summary = f"[{self.packet_counter}] ({timestamp:.2f}) HTTP"
+            output_callback(Text(http_summary, style=DEFAULT_COLORS['HTTP']))
+
+            http_info = parse_http_details(packet)
+            output_callback(Text(http_info, style=DEFAULT_COLORS['HTTP']))
+        else:
+            output_callback(Text("[Non-HTTP Packet]", style="italic"))
 
     def _handle_ntp_layer(self, packet, output_callback, timestamp):
         self.packet_counter += 1
@@ -207,20 +212,29 @@ def parse_dhcp_details(dhcp_layer):
 def parse_http_details(http_packet):
     wrapper = textwrap.TextWrapper(width=70, subsequent_indent='  ')
     http_details = ""
+
     if http_packet.haslayer(HTTPRequest):
         request = http_packet[HTTPRequest]
         http_details += "HTTP Request:\n"
-        details = f"  Method: {request.Method.decode()}\n  Path: {request.Path.decode()}\n  Host: {request.Host.decode()}\n"
-        http_details += '\n'.join(wrapper.wrap(details)) + '\n'
+        if hasattr(request, 'Method'):
+            details = f"  Method: {request.Method.decode()}\n  Path: {request.Path.decode()}\n  Host: {request.Host.decode()}\n"
+            http_details += '\n'.join(wrapper.wrap(details)) + '\n'
+        else:
+            http_details += "  [HTTP Request - Method Attribute Missing]\n"  # Indicate if Method is unavailable
+
     if http_packet.haslayer(HTTPResponse):
         response = http_packet[HTTPResponse]
         if http_details:
-            http_details += '\n'  # Only add a newline if there's already request info
+            http_details += '\n'
         http_details += "HTTP Response:\n"
-        details = f"  Status Code: {response.Status_Code.decode()}\n  Reason: {response.Reason_Phrase.decode()}\n"
-        http_details += '\n'.join(wrapper.wrap(details))
+        if hasattr(response, 'Status_Code') and hasattr(response, 'Reason_Phrase'):
+            details = f"  Status Code: {response.Status_Code.decode()}\n  Reason: {response.Reason_Phrase.decode()}\n"
+            http_details += '\n'.join(wrapper.wrap(details)) + '\n'
+        else:
+            http_details += "  [HTTP Response - Status or Reason Attributes Missing]\n"
+
     if http_details.endswith('\n'):
-        http_details = http_details[:-1]  # Remove the last newline if present
+        http_details = http_details[:-1]
     return http_details
 
 
