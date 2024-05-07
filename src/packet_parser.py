@@ -117,12 +117,14 @@ class PacketParser:
         dns_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DNS Queries: {' '.join(q.qname.decode() for q in packet[DNS].qd)}" if \
             packet[DNS].qd else "DNS Queries: No Queries"
         output_callback(Text(dns_summary, style=DEFAULT_COLORS['DNS']))
+        handle_payload(packet, output_callback, 'DNS')
 
     def _handle_dhcp_layer(self, packet, output_callback, timestamp):
         self.packet_counter += 1
         self.packet_counts['DHCP'] += 1
         dhcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DHCP: {packet[DHCP].options}"
         output_callback(Text(dhcp_summary, style=DEFAULT_COLORS['DHCP']))
+        handle_payload(packet, output_callback, 'DHCP')
 
     def _handle_http_layer(self, packet, output_callback, timestamp):
         self.packet_counter += 1
@@ -130,12 +132,14 @@ class PacketParser:
         http_layer = packet[HTTPRequest] if packet.haslayer(HTTPRequest) else packet[HTTPResponse]
         http_summary = f"[{self.packet_counter}] ({timestamp:.2f}) HTTP: {http_layer.Method.decode()} {http_layer.Path.decode()}"
         output_callback(Text(http_summary, style=DEFAULT_COLORS['HTTP']))
+        handle_payload(packet, output_callback, 'HTTP')
 
     def _handle_ntp_layer(self, packet, output_callback, timestamp):
         self.packet_counter += 1
         self.packet_counts['NTP'] += 1
         ntp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) NTP Version: {packet[NTP].version}"
         output_callback(Text(ntp_summary, style=DEFAULT_COLORS['NTP']))
+        handle_payload(packet, output_callback, 'NTP')
 
     @staticmethod
     def reset_packet_counts():
@@ -152,6 +156,58 @@ def handle_payload(packet, output_callback, protocol):
         payload = packet[Raw].load[:DEFAULT_PAYLOAD_SIZE]
         payload_hexdump = hexdump(payload, dump=True)
         output_callback(Text(payload_hexdump, style=DEFAULT_COLORS[protocol]))
+    else:
+        # Custom handling for structured data per protocol
+        if protocol == 'DNS':
+            dns_info = parse_dns_details(packet[DNS])
+            output_callback(Text(dns_info, style=DEFAULT_COLORS[protocol]))
+        elif protocol == 'DHCP':
+            dhcp_info = parse_dhcp_details(packet[DHCP])
+            output_callback(Text(dhcp_info, style=DEFAULT_COLORS[protocol]))
+        elif protocol == 'HTTP':
+            http_info = parse_http_details(packet)
+            output_callback(Text(http_info, style=DEFAULT_COLORS[protocol]))
+        elif protocol == 'NTP':
+            ntp_info = parse_ntp_details(packet[NTP])
+            output_callback(Text(ntp_info, style=DEFAULT_COLORS[protocol]))
+
+
+def parse_dns_details(dns_layer):
+    dns_details = "DNS Queries and Answers:\n"
+    if dns_layer.qr == 0:  # Query
+        dns_details += "Questions:\n"
+        for q in dns_layer.qd:
+            dns_details += f"  - {q.qname.decode() if hasattr(q.qname, 'decode') else q.qname}\n"
+    else:  # Response
+        dns_details += "Answers:\n"
+        for a in dns_layer.an:
+            dns_details += f"  - {a.rrname.decode() if hasattr(a.rrname, 'decode') else a.rrname} -> {a.rdata}\n"
+    return dns_details
+
+
+def parse_dhcp_details(dhcp_layer):
+    dhcp_details = "DHCP Options:\n"
+    for option in dhcp_layer.options:
+        if option[0] == 'end':
+            break
+        dhcp_details += f"  - {option[0]}: {option[1]}\n"
+    return dhcp_details
+
+
+def parse_http_details(http_packet):
+    http_details = ""
+    if http_packet.haslayer(HTTPRequest):
+        request = http_packet[HTTPRequest]
+        http_details += f"HTTP Request:\n  Method: {request.Method.decode()}\n  Path: {request.Path.decode()}\n  Host: {request.Host.decode()}\n"
+    if http_packet.haslayer(HTTPResponse):
+        response = http_packet[HTTPResponse]
+        http_details += f"HTTP Response:\n  Status Code: {response.Status_Code.decode()}\n  Reason: {response.Reason_Phrase.decode()}\n"
+    return http_details
+
+
+def parse_ntp_details(ntp_layer):
+    ntp_details = f"NTP Message:\n  Leap Indicator: {ntp_layer.leap}\n  Version: {ntp_layer.version}\n  Mode: {ntp_layer.mode}\n"
+    return ntp_details
 
 
 parser = PacketParser()
