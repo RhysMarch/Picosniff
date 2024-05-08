@@ -17,6 +17,11 @@
     border: round dodgerblue;
 }
 
+#bottom-left-attack-pane {
+    border: round dodgerblue;
+    height: 20%;
+}
+
 #right-pane {
     overflow-y: auto;
     width: 1fr;

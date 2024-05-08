@@ -42,6 +42,7 @@ class PicosniffApp(App):
         super().__init__()
         self.input_field = Input(placeholder="Type a command here")
         self.output_area = RichLog()
+        self.attack_output_area = RichLog()
         self.sniffing_active = False
         self.packet_counts_table = PacketCountsTable()
         self.command_handler = CommandHandler(self)  # Pass the app instance to the command handler
@@ -63,6 +64,11 @@ class PicosniffApp(App):
                 # Bottom Left Pane (for output)
                 with VerticalScroll(id="bottom-left-pane"):
                     yield self.output_area
+
+                # Bottom Left Pane (for attack detection output - initially hidden)
+                with VerticalScroll(id="bottom-left-attack-pane") as attack_pane:  # Assign the container to a variable
+                    yield self.attack_output_area
+                attack_pane.display = False
 
             # Right Pane (dedicated to visualisations)
             with VerticalScroll(id="right-pane"):

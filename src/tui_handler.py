@@ -87,6 +87,10 @@ class CommandHandler:
     async def handle_unknown_command(self, args):
         self.app.output_area.write(f"Unknown or incomplete command")
 
+    def show_attack_pane(self):
+        attack_pane = self.app.query_one("#bottom-left-attack-pane")
+        attack_pane.display = True
+
     def start_sniffing_on_interface(self, iface_name):
         self.app.output_area.clear()
         self.app.hide_interfaces()  # Hide top left pane when sniffing starts
