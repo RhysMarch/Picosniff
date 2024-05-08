@@ -45,6 +45,7 @@ from scapy.layers.dns import DNS
 from scapy.layers.dhcp import DHCP
 from scapy.layers.http import HTTPRequest, HTTPResponse
 from scapy.layers.ntp import NTP
+from scapy.layers.l2 import ARP
 from rich.text import Text
 import time
 
@@ -61,7 +62,8 @@ class PacketParser:
             'DNS': 0,
             'DHCP': 0,
             'HTTP': 0,
-            'NTP': 0
+            'NTP': 0,
+            'ARP': 0
         }
 
     def parse_packet(self, packet, output_callback):
@@ -86,7 +88,8 @@ class PacketParser:
                 self._handle_http_layer(packet, output_callback, timestamp)
             if packet.haslayer(NTP):
                 self._handle_ntp_layer(packet, output_callback, timestamp)
-
+            if packet.haslayer(ARP):
+                self._handle_arp_layer(packet, output_callback, timestamp)
         except Exception as e:
             output_callback(Text(f"Error processing packet: {e}", style="bold red"))
 
@@ -147,6 +150,21 @@ class PacketParser:
         ntp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) NTP Version: {packet[NTP].version}"
         output_callback(Text(ntp_summary, style=DEFAULT_COLORS['NTP']))
         handle_payload(packet, output_callback, 'NTP')
+
+    def _handle_arp_layer(self, packet, output_callback, timestamp):
+        self.packet_counter += 1
+        self.packet_counts['ARP'] += 1
+
+        # Construct the basic ARP summary
+        arp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) ARP: "
+        if packet[ARP].op == 1:  # ARP Request
+            arp_summary += f"Who has {packet[ARP].pdst}? Tell {packet[ARP].psrc}"
+        elif packet[ARP].op == 2:  # ARP Reply
+            arp_summary += f"{packet[ARP].psrc} is at {packet[ARP].hwsrc}"
+        output_callback(Text(arp_summary, style=DEFAULT_COLORS['ARP']))
+
+        arp_details = parse_arp_details(packet[ARP])
+        output_callback(Text(arp_details, style=DEFAULT_COLORS['ARP']))
 
     @staticmethod
     def reset_packet_counts():
@@ -247,6 +265,15 @@ def parse_ntp_details(ntp_layer):
     if ntp_details.endswith('\n'):
         ntp_details = ntp_details[:-1]  # Remove the last newline if present
     return ntp_details
+
+
+def parse_arp_details(arp_layer):
+    details = "ARP Details:\n"
+    if arp_layer.op == 1:  # Request
+        details += f"  Operation: Request\n  Sender MAC: {arp_layer.hwsrc}\n  Sender IP: {arp_layer.psrc}\n  Target IP: {arp_layer.pdst}"
+    elif arp_layer.op == 2:  # Reply
+        details += f"  Operation: Reply\n  Sender MAC: {arp_layer.hwsrc}\n  Sender IP: {arp_layer.psrc}\n  Target MAC: {arp_layer.hwdst}\n  Target IP: {arp_layer.pdst}"
+    return details
 
 
 parser = PacketParser()

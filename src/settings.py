@@ -18,8 +18,9 @@ DEFAULT_COLORS = {
     'UDP': 'bright_magenta',
     'DNS': 'bright_cyan',
     'DHCP': 'bright_green',
-    'HTTP': 'bright_purple',
-    'NTP': 'bright_orange'
+    'HTTP': 'bright_white',
+    'NTP': 'bright_orange',
+    'ARP': 'dark_violet'
 }
 
 MAC_INTERFACE_NAME_MAP = {
