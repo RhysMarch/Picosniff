@@ -48,6 +48,6 @@
 }
 
 #ip-distribution {
-    padding: 4 0 0 2;
-    content-align-horizontal: center;
+    padding: 4 0 0 6;
+    content-align-horizontal: left;
 }
