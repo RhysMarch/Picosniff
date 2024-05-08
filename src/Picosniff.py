@@ -78,14 +78,6 @@ class PicosniffApp(App):
                     yield PacketCountsTable(id="packet-counts-table")
                 yield IPDistributionTable(id="ip-distribution")
 
-    def hide_interfaces(self) -> None:
-        top_left_pane = self.query_one("#top-left-pane")
-        top_left_pane.display = not top_left_pane.display
-
-    def show_interfaces(self) -> None:
-        top_left_pane = self.query_one("#top-left-pane")
-        top_left_pane.display = True
-
     async def on_mount(self):
         self.input_field.focus()
         self.set_interval(0.1, self.update_widgets)

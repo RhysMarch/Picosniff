@@ -78,7 +78,7 @@ class CommandHandler:
 
     async def handle_clear(self, args):
         self.app.output_area.clear()
-        self.app.show_interfaces()  # Show top left interface once 'clear'
+        self.show_interfaces()  # Show top left interface once 'clear'
         gc.collect()
 
     async def handle_exit(self, args):
@@ -91,9 +91,17 @@ class CommandHandler:
         attack_pane = self.app.query_one("#bottom-left-attack-pane")
         attack_pane.display = True
 
+    def hide_interfaces(self) -> None:
+        top_left_pane = self.app.query_one("#top-left-pane")
+        top_left_pane.display = not top_left_pane.display
+
+    def show_interfaces(self) -> None:
+        top_left_pane = self.app.query_one("#top-left-pane")
+        top_left_pane.display = True
+
     def start_sniffing_on_interface(self, iface_name):
         self.app.output_area.clear()
-        self.app.hide_interfaces()  # Hide top left pane when sniffing starts
+        self.hide_interfaces()  # Hide top left pane when sniffing starts
         self.app.output_area.write(f"Sniffing on interface {iface_name}...\n")
         self.app.sniffing_active = True
         self.app.query_one(PacketFlowPlot).start_tracking()
