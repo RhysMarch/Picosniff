@@ -1,5 +1,5 @@
 from collections import defaultdict, deque
-from scapy.layers.l2 import ARP
+from scapy.layers.dns import DNS
 from scapy.layers.inet import TCP, IP
 import time
 
@@ -7,41 +7,52 @@ import time
 class AttackDetector:
     def __init__(self):
         self.arp_map = defaultdict(set)
-        self.syn_events = defaultdict(deque)
-        self.time_window = 1  # Default time window in seconds
-        self.syn_threshold_multiplier = 1.7  # This needs fine-tuning depending on the network
-        self.baseline_syn_rate = 1
+        self.event_history = {
+            'syn': defaultdict(deque),
+            'dns': defaultdict(deque)
+        }
+        self.time_window = 1
+
+        # Adjustable parameters:
+        self.threshold_multipliers = {'syn': 2, 'dns': 2}
+        self.baseline_rates = {'syn': 1.2, 'dns': 1.5}
         self.ewma_alpha = 0.2
-        self.decay_factor = 0.1  # Introduce a decay factor
+        self.decay_factor = 0.3
 
-    def detect_syn_flood(self, packet):
-        if packet.haslayer(TCP) and packet[TCP].flags & 0x02:
-            current_time = time.time()
-            ip = packet[IP].src
-            self.syn_events[ip].append(current_time)
+    def _detect_flood(self, packet, event_type):
+        if event_type == 'syn' and packet.haslayer(TCP) and packet[TCP].flags & 0x02:
+            source = packet[IP].src
+        elif event_type == 'dns' and packet.haslayer(DNS) and packet[DNS].qr == 0:
+            source = packet[IP].src
+        else:
+            return None
 
-            # Maintain SYN event history and clean up expired events
-            while self.syn_events[ip] and current_time - self.syn_events[ip][0] > self.time_window:
-                self.syn_events[ip].popleft()
+        current_time = time.time()
+        self.event_history[event_type][source].append(current_time)
+        self._cleanup_events(event_type)  # Cleanup old events
 
-            # Calculate the current SYN rate
-            syn_rate = len(self.syn_events[ip]) / self.time_window
+        rate = len(self.event_history[event_type][source]) / self.time_window
 
-            # Update the baseline SYN rate using EWMA (with decay)
-            self.baseline_syn_rate *= (1 - self.decay_factor)  # Apply decay
-            self.baseline_syn_rate = (self.ewma_alpha * syn_rate) + ((1 - self.ewma_alpha) * self.baseline_syn_rate)
+        self.baseline_rates[event_type] *= (1 - self.decay_factor)
+        self.baseline_rates[event_type] = (self.ewma_alpha * rate) + ((1 - self.ewma_alpha) * self.baseline_rates[event_type])
 
-            # Calculate the dynamic threshold
-            current_threshold = self.baseline_syn_rate * self.syn_threshold_multiplier
-
-            if syn_rate >= current_threshold:
-                return f"SYN Flood Caution: High SYN rate from {ip} ({syn_rate:.2f} SYNs/sec)"
+        threshold = self.baseline_rates[event_type] * self.threshold_multipliers[event_type]
+        if rate >= threshold:
+            fmt_str = f"{event_type.upper()} Flood Caution: High {event_type} rate from {{}} ({{:.2f}} {event_type}/sec)"
+            return fmt_str.format(source, rate)
         return None
 
+    def _cleanup_events(self, event_type):
+        """Removes expired events from the event history"""
+        current_time = time.time()
+        for ip, events in self.event_history[event_type].items():
+            while events and current_time - events[0] > self.time_window:
+                events.popleft()
+
     def detect_attacks(self, packet, start_time):
-        syn_message = self.detect_syn_flood(packet)
-        if syn_message:
-            relative_time = time.time() - start_time
-            message = syn_message
-            return f"[{relative_time:.2f}] {message}"
+        for event_type in ['syn', 'dns']:
+            message = self._detect_flood(packet, event_type)
+            if message:
+                relative_time = time.time() - start_time
+                return f"[{relative_time:.2f}] {message}"
         return None

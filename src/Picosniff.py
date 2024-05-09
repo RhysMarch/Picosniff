@@ -26,6 +26,7 @@ Dependencies:
 - Scapy for packet capture and analysis.
 - Textual framework for the interactive UI.
 """
+import time
 from rich.text import Text
 from textual import on
 from textual.app import App, ComposeResult
@@ -47,6 +48,7 @@ class PicosniffApp(App):
         self.sniffing_active = False
         self.packet_counts_table = PacketCountsTable()
         self.command_handler = CommandHandler(self)  # Pass the app instance to the command handler
+        self.last_message_time = None
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -84,11 +86,22 @@ class PicosniffApp(App):
         self.set_interval(0.1, self.update_widgets)
 
     def handle_attack_alert(self, message):
-        # Create a Text object with the message, styled in red
-        formatted_message = Text(message, style="red3")
-        self.attack_output_area.write(formatted_message)  # Write the formatted message to the log
+        """Handles display of attack alerts and rate-limiting"""
+        if "SYN" in message:
+            color = "red3"
+        elif "DNS" in message:
+            color = "blue3"
+        else:
+            color = "bold yellow"  # For future attack detections
+
+        if self.last_message_time and time.time() - self.last_message_time < 0.5:
+            return  # Limit messages to once every 0.5 seconds
+
+        formatted_message = Text(message, style=color)
+        self.attack_output_area.write(formatted_message)
         attack_pane = self.query_one("#bottom-left-attack-pane")
         attack_pane.display = True  # Ensure the attack output area is visible
+        self.last_message_time = time.time()  # Update timestamp
 
     @on(Input.Submitted)
     async def handle_command_wrapper(self, event):

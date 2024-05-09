@@ -33,11 +33,11 @@ import time
 from scapy.interfaces import IFACES
 from packet_parser import parser
 from packet_sniffer import start_sniffing
-from visualisation import PacketFlowPlot, IPDistributionTable
+from visualisation import PacketFlowPlot, IPDistributionTable, get_local_ip
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'test'))
-from attack_detection_test import simulate_syn_flood
+from attack_detection_test import simulate_syn_flood, simulate_dns_flood
 
 
 async def handle_command(handler, event):
@@ -107,7 +107,7 @@ class CommandHandler:
 
     def hide_interfaces(self) -> None:
         top_left_pane = self.app.query_one("#top-left-pane")
-        top_left_pane.display = not top_left_pane.display
+        top_left_pane.display = False
 
     def show_interfaces(self) -> None:
         top_left_pane = self.app.query_one("#top-left-pane")
@@ -117,16 +117,24 @@ class CommandHandler:
         # Use the currently sniffing interface or default to a loopback if none is active
         interface = self.current_interface if self.current_interface else '\\Device\\NPF_Loopback'
 
-        def simulate_attacks(interface):
-            simulate_syn_flood(interface)  # Simulate with 30 SYN packets
+        def launch_attacks(interface):
+            victim_ip = get_local_ip()  # Get the victim IP for both attacks
 
-        simulation_thread = threading.Thread(target=simulate_attacks, args=(interface,))
+            syn_thread = threading.Thread(target=simulate_syn_flood, args=(interface, victim_ip))
+            dns_thread = threading.Thread(target=simulate_dns_flood, args=(interface, victim_ip))
+
+            syn_thread.start()
+            dns_thread.start()
+
+        simulation_thread = threading.Thread(target=launch_attacks, args=(interface,))
         simulation_thread.start()
         self.app.output_area.write(f"Initiating attack simulation on {interface}\n")
 
     def start_sniffing_on_interface(self, iface_name):
         self.app.output_area.clear()
         self.hide_interfaces()  # Hide top left pane when sniffing starts
+        self.hide_attack_pane()
+        self.app.attack_output_area.clear()
         self.app.output_area.write(f"Sniffing on interface {iface_name}...\n")
         self.app.sniffing_active = True
         self.app.query_one(PacketFlowPlot).start_tracking()
