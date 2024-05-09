@@ -1,31 +1,37 @@
 """
 tui_handler.py
 
-This module defines the command handling logic for a Textual-based network packet sniffing application.
-It interprets user inputs and executes actions such as starting or stopping packet sniffing on specified network interfaces,
-clearing the display, or exiting the application.
+This module defines the command handling and UI display logic for a Textual-based network packet sniffing application.
+It interprets user inputs, executes actions such as starting or stopping packet sniffing, clearing the display, or exiting the application. The module also renders help information in stylised panels.
 
 Functions:
 - handle_command(self, event): Parses and executes commands received through a textual input widget.
+- handle_sniff(self, args): Initiates packet sniffing on a specified network interface.
+- handle_stop(self, args): Stops the active packet sniffing session.
+- handle_clear(self, args): Clears the display areas and stops packet sniffing.
+- handle_help(self, args): Displays a help screen with command descriptions and information panels.
+- handle_exit(self, args): Exits the application gracefully.
+- handle_unknown_command(self, args): Provides feedback for unrecognised or malformed commands.
+- handle_test(self, args):  Launches a simulated SYN and DNS flood attack for testing purposes.
+
+Additional UI Functions:
+- show_attack_pane(self): Makes the attack alerts panel visible.
+- hide_attack_pane(self): Hides the attack alerts panel.
+- show_interfaces(self): Shows the 'top-left' interface panel.
+- hide_interfaces(self): Hides the 'top-left' interface panel.
 
 Responsibilities:
-- Start and stop packet sniffing on specified network interfaces.
-- Reset packet statistics and counters when sniffing is initiated.
-- Provide real-time feedback to the user by updating the application's output area.
-- Validate user commands and provide feedback for unrecognised or malformed commands.
-
-The `handle_command` function is designed to be a method of a class that represents the application's main interface,
-expecting that the class instance (`self`) will have attributes like `output_area` for logging messages to the user,
-and `sniffing_active` to track the state of packet sniffing.
-
-Usage:
-This module is used within a Textual application where commands are issued through an input field. The `handle_command`
-function is bound to events triggered by submitting text in this field.
+- Manage the overall state of packet sniffing.
+- Render user interface panels with Rich text formatting.
+- Validate user commands and provide feedback.
+- Coordinate with external modules for packet parsing, sniffing, and visualisation.
 
 Dependencies:
-- scapy.interfaces.IFACES: Used to validate and resolve network interface specifications from user commands.
-- packet_parser: Utilises functions to parse packets and manage packet counters.
-- packet_sniffer: Calls functionality to begin sniffing packets on designated interfaces.
+- scapy.interfaces.IFACES: Used to validate and resolve network interface specifications.
+- packet_parser:  Parses packets and manages packet counters.
+- packet_sniffer:  Handles the packet sniffing process.
+- visualisation: Contains widgets for displaying packet flow, packet counts, and IP distribution.
+- attack_detection_test: Provides functions to simulate attacks.
 """
 import gc
 import threading
@@ -96,10 +102,9 @@ class CommandHandler:
 
     async def handle_help(self, args):
         self.app.output_area.clear()
-        # Create a rich Text object for better formatting
         help_text = Text()
 
-        # Add commands and descriptions with styles
+        # Command Panel
         help_text.append("sniff <interface_index>", style="bold cyan")
         help_text.append(" : Starts packet sniffing on the specified interface.\n", style="white")
 
@@ -118,11 +123,34 @@ class CommandHandler:
         help_text.append("help", style="bold cyan")
         help_text.append(" : Displays this help message.\n", style="white")
 
-        # Use Panel for a bordered box around the help text
-        help_panel = Panel(help_text, title="Commands", border_style="green")
+        command_panel = Panel(help_text, title="Commands", border_style="green")
+        self.app.output_area.write(command_panel)
 
-        # Write the formatted panel to the output area
-        self.app.output_area.write(help_panel)
+        # Visualisation Panel
+        vis_text = Text()
+        vis_text.append("Packet Flow Plot: ", style="bold magenta")
+        vis_text.append("Shows real-time packet flow over time.\n", style="white")
+        vis_text.append("Packet Counts Bar Chart: ", style="bold magenta")
+        vis_text.append("Displays the count of packets by protocol.\n", style="white")
+        vis_text.append("IP Distribution Table: ", style="bold magenta")
+        vis_text.append("Lists the distribution of source and destination IPs in the traffic.\n", style="white")
+
+        vis_panel = Panel(vis_text, title="Visualisations", border_style="yellow")
+        self.app.output_area.write(vis_panel)
+
+        # Attack Detection Panel
+        attack_text = Text()
+        attack_text.append("Real-time Attack Alerts: ", style="bold magenta")
+        attack_text.append("Alerts for ARP Spoofing and SYN Flood attacks. More to come.\n", style="white")
+        attack_text.append("Attack details are displayed in the bottom-left attack pane when detected.\n",
+                           style="white")
+        attack_text.append("False Warnings: ", style="bold magenta")
+        attack_text.append("Attack detection needs to be fine-tuned perfectly depending on the network and therefore can give false warnings. "
+                           "This can be solved by only investigating alerts with high rates of events per second",
+                           style="white")
+
+        attack_panel = Panel(attack_text, title="Attack Detection", border_style="red")
+        self.app.output_area.write(attack_panel)
 
     async def handle_exit(self, args):
         self.app.exit()  # Exit the application
