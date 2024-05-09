@@ -19,7 +19,7 @@
 
 #bottom-left-attack-pane {
     border: round dodgerblue;
-    height: 40%;
+    height: 30%;
 }
 
 #right-pane {

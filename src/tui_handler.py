@@ -109,7 +109,10 @@ class CommandHandler:
         parser.reset_packet_counts()
         parser.reset_packet_counter()
         parser.start_time = time.time()
-        start_sniffing(iface_name, lambda packet: parser.parse_packet(packet, self.app.output_area.write),
+        start_sniffing(iface_name,
+                       lambda packet: parser.parse_packet(packet,
+                                                          self.app.output_area.write,
+                                                          self.app.handle_attack_alert),
                        lambda: self.app.sniffing_active)
         self.app.set_timer(5, self.check_for_no_packets)
 

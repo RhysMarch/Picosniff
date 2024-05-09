@@ -26,6 +26,7 @@ Dependencies:
 - Scapy for packet capture and analysis.
 - Textual framework for the interactive UI.
 """
+from rich.text import Text
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll, Horizontal, Vertical
@@ -81,6 +82,13 @@ class PicosniffApp(App):
     async def on_mount(self):
         self.input_field.focus()
         self.set_interval(0.1, self.update_widgets)
+
+    def handle_attack_alert(self, message):
+        # Create a Text object with the message, styled in red
+        formatted_message = Text(message, style="red3")
+        self.attack_output_area.write(formatted_message)  # Write the formatted message to the log
+        attack_pane = self.query_one("#bottom-left-attack-pane")
+        attack_pane.display = True  # Ensure the attack output area is visible
 
     @on(Input.Submitted)
     async def handle_command_wrapper(self, event):

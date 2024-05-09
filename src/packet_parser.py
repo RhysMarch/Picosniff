@@ -39,6 +39,7 @@ and a start time for relative timing information.
 import textwrap
 from collections import defaultdict
 from scapy.all import Raw, hexdump
+from attack_detection import AttackDetector
 from settings import DEFAULT_PAYLOAD_SIZE, DEFAULT_COLORS
 from scapy.layers.inet import TCP, UDP, IP
 from scapy.layers.dns import DNS
@@ -55,6 +56,7 @@ class PacketParser:
         self.start_time = time.time()  # Initialise upon object creation
         self.packet_counter = 0
         self.ip_distribution = defaultdict(int)
+        self.attack_detector = AttackDetector()
         self.packet_counts = {
             'IP': 0,
             'TCP': 0,
@@ -66,11 +68,15 @@ class PacketParser:
             'ARP': 0
         }
 
-    def parse_packet(self, packet, output_callback):
+    def parse_packet(self, packet, output_callback, attack_output_callback):
         try:
             current_time = time.time()
             if self.start_time is None or current_time < self.start_time:
                 self.start_time = current_time
+
+            attack_message = self.attack_detector.detect_attacks(packet, self.start_time)
+            if attack_message:
+                attack_output_callback(attack_message)
 
             timestamp = current_time - self.start_time
 
