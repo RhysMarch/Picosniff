@@ -30,6 +30,8 @@ Dependencies:
 import gc
 import threading
 import time
+from rich.panel import Panel
+from rich.text import Text
 from scapy.interfaces import IFACES
 from packet_parser import parser
 from packet_sniffer import start_sniffing
@@ -52,6 +54,7 @@ async def handle_command(handler, event):
         'sniff': handler.handle_sniff,
         'stop': handler.handle_stop,
         'clear': handler.handle_clear,
+        'help': handler.handle_help,
         'exit': handler.handle_exit,
         'test': handler.handle_test,
         'unknown': handler.handle_unknown_command
@@ -90,6 +93,36 @@ class CommandHandler:
         self.show_interfaces()  # Show top left interface once 'clear'
         self.hide_attack_pane()
         gc.collect()
+
+    async def handle_help(self, args):
+        self.app.output_area.clear()
+        # Create a rich Text object for better formatting
+        help_text = Text()
+
+        # Add commands and descriptions with styles
+        help_text.append("sniff <interface_index>", style="bold cyan")
+        help_text.append(" : Starts packet sniffing on the specified interface.\n", style="white")
+
+        help_text.append("stop", style="bold cyan")
+        help_text.append(" : Stops packet sniffing.\n", style="white")
+
+        help_text.append("clear", style="bold cyan")
+        help_text.append(" : Clears the screen and stops sniffing.\n", style="white")
+
+        help_text.append("exit", style="bold cyan")
+        help_text.append(" : Exits the application.\n", style="white")
+
+        help_text.append("test", style="bold cyan")
+        help_text.append(" : Launches a simulated SYN and DNS flood attack.\n", style="white")
+
+        help_text.append("help", style="bold cyan")
+        help_text.append(" : Displays this help message.\n", style="white")
+
+        # Use Panel for a bordered box around the help text
+        help_panel = Panel(help_text, title="Commands", border_style="green")
+
+        # Write the formatted panel to the output area
+        self.app.output_area.write(help_panel)
 
     async def handle_exit(self, args):
         self.app.exit()  # Exit the application

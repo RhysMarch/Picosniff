@@ -83,6 +83,7 @@ class PicosniffApp(App):
 
     async def on_mount(self):
         self.input_field.focus()
+        await self.command_handler.handle_help(None)
         self.set_interval(0.1, self.update_widgets)
 
     def handle_attack_alert(self, message):
