@@ -1,5 +1,5 @@
 #left-section {
-    width: 0.65fr;
+    width: 0.70fr;
 }
 
 #top-left-pane {
@@ -19,7 +19,7 @@
 
 #bottom-left-attack-pane {
     border: round dodgerblue;
-    height: 30%;
+    height: 15%;
 }
 
 #right-pane {

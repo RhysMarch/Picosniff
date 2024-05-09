@@ -28,15 +28,19 @@ Dependencies:
 - packet_sniffer: Calls functionality to begin sniffing packets on designated interfaces.
 """
 import gc
+import threading
 import time
 from scapy.interfaces import IFACES
 from packet_parser import parser
 from packet_sniffer import start_sniffing
 from visualisation import PacketFlowPlot, IPDistributionTable
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'test'))
+from attack_detection_test import simulate_syn_flood
 
 
 async def handle_command(handler, event):
-
     input_text = event.value.strip()
     if not input_text:
         # If there's no input, just return without doing anything
@@ -49,6 +53,7 @@ async def handle_command(handler, event):
         'stop': handler.handle_stop,
         'clear': handler.handle_clear,
         'exit': handler.handle_exit,
+        'test': handler.handle_test,
         'unknown': handler.handle_unknown_command
     }
 
@@ -59,6 +64,7 @@ async def handle_command(handler, event):
 class CommandHandler:
     def __init__(self, app):
         self.app = app
+        self.current_interface = None
 
     async def handle_sniff(self, args):
         if not args:
@@ -68,6 +74,7 @@ class CommandHandler:
         iface_index = int(args[0])
         if 0 < iface_index <= len(IFACES):
             iface_name = IFACES[list(IFACES.keys())[iface_index - 1]].name
+            self.current_interface = iface_name  # Store the current interface being sniffed
             self.start_sniffing_on_interface(iface_name)
         else:
             self.app.output_area.write("Invalid interface index\n")
@@ -78,7 +85,10 @@ class CommandHandler:
 
     async def handle_clear(self, args):
         self.app.output_area.clear()
+        self.app.attack_output_area.clear()
+        self.app.sniffing_active = False  # Clear also stops sniffing
         self.show_interfaces()  # Show top left interface once 'clear'
+        self.hide_attack_pane()
         gc.collect()
 
     async def handle_exit(self, args):
@@ -91,6 +101,10 @@ class CommandHandler:
         attack_pane = self.app.query_one("#bottom-left-attack-pane")
         attack_pane.display = True
 
+    def hide_attack_pane(self):
+        attack_pane = self.app.query_one("#bottom-left-attack-pane")
+        attack_pane.display = False
+
     def hide_interfaces(self) -> None:
         top_left_pane = self.app.query_one("#top-left-pane")
         top_left_pane.display = not top_left_pane.display
@@ -98,6 +112,17 @@ class CommandHandler:
     def show_interfaces(self) -> None:
         top_left_pane = self.app.query_one("#top-left-pane")
         top_left_pane.display = True
+
+    async def handle_test(self, args):
+        # Use the currently sniffing interface or default to a loopback if none is active
+        interface = self.current_interface if self.current_interface else '\\Device\\NPF_Loopback'
+
+        def simulate_attacks(interface):
+            simulate_syn_flood(interface)  # Simulate with 30 SYN packets
+
+        simulation_thread = threading.Thread(target=simulate_attacks, args=(interface,))
+        simulation_thread.start()
+        self.app.output_area.write(f"Initiating attack simulation on {interface}\n")
 
     def start_sniffing_on_interface(self, iface_name):
         self.app.output_area.clear()

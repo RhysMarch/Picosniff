@@ -85,7 +85,7 @@ class PicosniffApp(App):
 
     def handle_attack_alert(self, message):
         # Create a Text object with the message, styled in red
-        formatted_message = Text(message, style="red3")
+        formatted_message = Text(message)
         self.attack_output_area.write(formatted_message)  # Write the formatted message to the log
         attack_pane = self.query_one("#bottom-left-attack-pane")
         attack_pane.display = True  # Ensure the attack output area is visible
