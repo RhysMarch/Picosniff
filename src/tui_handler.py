@@ -181,6 +181,7 @@ class CommandHandler:
         def launch_attacks(interface):
             victim_ip = get_local_ip()  # Get the victim IP for both attacks
 
+            self.app.output_area.write("Test")
             syn_thread = threading.Thread(target=simulate_syn_flood, args=(interface, victim_ip))
             dns_thread = threading.Thread(target=simulate_dns_flood, args=(interface, victim_ip))
 
