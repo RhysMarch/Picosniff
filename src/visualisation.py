@@ -219,11 +219,15 @@ class IPDistributionTable(Widget):
 def get_local_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(0)
-        # Use Google's Public DNS server IP to find the local endpoint
-        s.connect(("8.8.8.8", 80))
+        s.connect(("8.8.8.8", 80))  # Connect to public DNS for outgoing IP
         local_ip = s.getsockname()[0]
         s.close()
+
+        # Basic check for local IP
+        if local_ip.startswith('192.168.') or local_ip.startswith('10.') or local_ip.startswith('172.16.'):
+            return local_ip
+
+        # If not a common local IP range, return what we found:
         return local_ip
     except Exception:
-        return "127.0.0.1"  # Default to localhost if unable to determine
+        return "127.0.0.1"  # Default to localhost
