@@ -43,10 +43,6 @@ LINUX_INTERFACE_NAME_MAP = {
     'lo': 'Localhost Loopback'
 }
 
-attack_colors = {
-    "SYN Flood Warning": "scarlet",
-}
-
 
 def update_payload_size(size):
     """Update the default payload size for packet visualization."""

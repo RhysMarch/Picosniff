@@ -35,7 +35,7 @@ class AttackDetector:
             current_threshold = self.baseline_syn_rate * self.syn_threshold_multiplier
 
             if syn_rate >= current_threshold:
-                return f"\033[91mSYN Flood Caution: High SYN rate from {ip} ({syn_rate:.2f} SYNs/sec)\033[0m"
+                return f"SYN Flood Caution: High SYN rate from {ip} ({syn_rate:.2f} SYNs/sec)"
         return None
 
     def detect_attacks(self, packet, start_time):
