@@ -34,6 +34,7 @@ Dependencies:
 - attack_detection_test: Provides functions to simulate attacks.
 """
 import gc
+import platform
 import threading
 import time
 from rich.panel import Panel
@@ -45,7 +46,8 @@ from visualisation import PacketFlowPlot, IPDistributionTable, get_local_ip
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'test'))
-from attack_detection_test import simulate_syn_flood, simulate_dns_flood
+from attack_detection_test import simulate_syn_flood, simulate_dns_flood, simulate_syn_flood_linux, \
+    simulate_dns_flood_linux
 
 
 async def handle_command(handler, event):
@@ -181,10 +183,23 @@ class CommandHandler:
         def launch_attacks(interface):
             victim_ip = get_local_ip()  # Get the victim IP for both attacks
 
-            self.app.output_area.write(victim_ip)
-            self.app.output_area.write(interface)
-            syn_thread = threading.Thread(target=simulate_syn_flood, args=(interface, victim_ip))
-            dns_thread = threading.Thread(target=simulate_dns_flood, args=(interface, victim_ip))
+            self.app.output_area.write("Victim IP: " + victim_ip)
+            self.app.output_area.write("Interface: " + interface)
+
+            # Determine the operating system
+            os_name = platform.system()
+            if os_name == "Linux":
+                # Use the Linux-specific functions for SYN and DNS flood
+                syn_func = simulate_syn_flood_linux
+                dns_func = simulate_dns_flood_linux
+            else:
+                # Use the default functions for non-Linux systems
+                syn_func = simulate_syn_flood
+                dns_func = simulate_dns_flood
+
+            # Start the threads for SYN and DNS flood simulations
+            syn_thread = threading.Thread(target=syn_func, args=(interface, victim_ip))
+            dns_thread = threading.Thread(target=dns_func, args=(interface, victim_ip))
 
             syn_thread.start()
             dns_thread.start()
