@@ -102,55 +102,55 @@ class CommandHandler:
 
     async def handle_help(self, args):
         self.app.output_area.clear()
-        help_text = Text()
+
+        # Intro Text
+        intro_text = Text()
+        intro_text.append(
+            "\n     Dive into network traffic with this easy-to-use terminal packet sniffer "
+            "\n     (powered by Textual). Read the rest of this panel before using Picosniff.")
+        self.app.output_area.write(intro_text)
 
         # Command Panel
+        help_text = Text()
+        help_text.append("\nCommands:\n", style="underline")
         help_text.append("sniff <interface_index>", style="bold cyan")
         help_text.append(" : Starts packet sniffing on the specified interface.\n", style="white")
-
         help_text.append("stop", style="bold cyan")
         help_text.append(" : Stops packet sniffing.\n", style="white")
-
         help_text.append("clear", style="bold cyan")
         help_text.append(" : Clears the screen and stops sniffing.\n", style="white")
-
         help_text.append("exit", style="bold cyan")
         help_text.append(" : Exits the application.\n", style="white")
-
         help_text.append("test", style="bold cyan")
         help_text.append(" : Launches a simulated SYN and DNS flood attack.\n", style="white")
-
         help_text.append("help", style="bold cyan")
         help_text.append(" : Displays this help message.\n", style="white")
-
-        command_panel = Panel(help_text, title="Commands", border_style="green")
-        self.app.output_area.write(command_panel)
+        self.app.output_area.write(help_text)
 
         # Visualisation Panel
         vis_text = Text()
-        vis_text.append("Packet Flow Plot: ", style="bold magenta")
+        vis_text.append("Visualisations & Statistics:\n", style="underline")
+        vis_text.append("Packet Flow Plot: ", style="yellow")
         vis_text.append("Shows real-time packet flow over time.\n", style="white")
-        vis_text.append("Packet Counts Bar Chart: ", style="bold magenta")
+        vis_text.append("Packet Counts Bar Chart: ", style="yellow")
         vis_text.append("Displays the count of packets by protocol.\n", style="white")
-        vis_text.append("IP Distribution Table: ", style="bold magenta")
-        vis_text.append("Lists the distribution of source and destination IPs in the traffic.\n", style="white")
-
-        vis_panel = Panel(vis_text, title="Visualisations", border_style="yellow")
-        self.app.output_area.write(vis_panel)
+        vis_text.append("IP Distribution Table: ", style="yellow")
+        vis_text.append("Lists the distribution of source and destination\nIPs in the traffic.\n", style="white")
+        self.app.output_area.write(vis_text)
 
         # Attack Detection Panel
         attack_text = Text()
+        attack_text.append("Attack Detection:\n", style="underline")
         attack_text.append("Real-time Attack Alerts: ", style="bold magenta")
-        attack_text.append("Alerts for ARP Spoofing and SYN Flood attacks. More to come.\n", style="white")
-        attack_text.append("Attack details are displayed in the bottom-left attack pane when detected.\n",
+        attack_text.append("Alerts for DNS Query Flood and SYN Flood attacks.\n", style="white")
+        attack_text.append("Display on Detection: ", style="bold magenta")
+        attack_text.append("Attack details are displayed in the bottom-left\nattack pane when detected.\n",
                            style="white")
         attack_text.append("False Warnings: ", style="bold magenta")
-        attack_text.append("Attack detection needs to be fine-tuned perfectly depending on the network and therefore can give false warnings. "
-                           "This can be solved by only investigating alerts with high rates of events per second",
+        attack_text.append("Attack detection needs to be fine-tuned perfectly depending \n on the network and therefore can give false warnings. "
+                           "This can be solved \nby only investigating alerts with high rates of events per second.",
                            style="white")
-
-        attack_panel = Panel(attack_text, title="Attack Detection", border_style="red")
-        self.app.output_area.write(attack_panel)
+        self.app.output_area.write(attack_text)
 
     async def handle_exit(self, args):
         self.app.exit()  # Exit the application
