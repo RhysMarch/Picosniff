@@ -36,7 +36,6 @@ Dependencies:
 import gc
 import threading
 import time
-from rich.panel import Panel
 from rich.text import Text
 from scapy.interfaces import IFACES
 from packet_parser import parser
