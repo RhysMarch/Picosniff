@@ -42,12 +42,3 @@ LINUX_INTERFACE_NAME_MAP = {
     'wlan0': 'Wireless LAN',
     'lo': 'Localhost Loopback'
 }
-
-
-def update_payload_size(size):
-    """Update the default payload size for packet visualization."""
-    global DEFAULT_PAYLOAD_SIZE
-    if size > 0:
-        DEFAULT_PAYLOAD_SIZE = size
-    else:
-        raise ValueError("Payload size must be greater than zero.")
