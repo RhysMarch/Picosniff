@@ -68,7 +68,7 @@ class PacketParser:
             'ARP': 0
         }
 
-    def parse_packet(self, packet, output_callback, attack_output_callback):
+    def parse_packet(self, packet, output_callback, attack_output_callback, efficient_mode=False):
         try:
             current_time = time.time()
             if self.start_time is None or current_time < self.start_time:
@@ -81,96 +81,138 @@ class PacketParser:
             timestamp = current_time - self.start_time
 
             if packet.haslayer(IP):
-                self._handle_ip_layer(packet, output_callback, timestamp)
+                self._handle_ip_layer(packet, output_callback, timestamp, efficient_mode)
             if packet.haslayer(TCP):
-                self._handle_tcp_layer(packet, output_callback, timestamp)
+                self._handle_tcp_layer(packet, output_callback, timestamp, efficient_mode)
             if packet.haslayer(UDP):
-                self._handle_udp_layer(packet, output_callback, timestamp)
+                self._handle_udp_layer(packet, output_callback, timestamp, efficient_mode)
             if packet.haslayer(DNS):
-                self._handle_dns_layer(packet, output_callback, timestamp)
+                self._handle_dns_layer(packet, output_callback, timestamp, efficient_mode)
             if packet.haslayer(DHCP):
-                self._handle_dhcp_layer(packet, output_callback, timestamp)
+                self._handle_dhcp_layer(packet, output_callback, timestamp, efficient_mode)
             if packet.haslayer(HTTPRequest) or packet.haslayer(HTTPResponse):
-                self._handle_http_layer(packet, output_callback, timestamp)
+                self._handle_http_layer(packet, output_callback, timestamp, efficient_mode)
             if packet.haslayer(NTP):
-                self._handle_ntp_layer(packet, output_callback, timestamp)
+                self._handle_ntp_layer(packet, output_callback, timestamp, efficient_mode)
             if packet.haslayer(ARP):
-                self._handle_arp_layer(packet, output_callback, timestamp)
+                self._handle_arp_layer(packet, output_callback, timestamp, efficient_mode)
         except Exception as e:
             output_callback(Text(f"Error processing packet: {e}", style="bold red"))
 
-    def _handle_ip_layer(self, packet, output_callback, timestamp):
+    def _handle_ip_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['IP'] += 1
         self.ip_distribution[packet[IP].src] += 1
         self.ip_distribution[packet[IP].dst] += 1
-        ip_summary = f"[{self.packet_counter}] ({timestamp:.2f}) IP: {packet[IP].src} -> {packet[IP].dst}"
-        output_callback(Text(ip_summary, style=DEFAULT_COLORS['IP']))
-        handle_payload(packet, output_callback, 'IP')
 
-    def _handle_tcp_layer(self, packet, output_callback, timestamp):
+        if not efficient_mode:
+            ip_summary = f"[{self.packet_counter}] ({timestamp:.2f}) IP: {packet[IP].src} -> {packet[IP].dst}"
+            output_callback(Text(ip_summary, style=DEFAULT_COLORS['IP']))
+        else:
+            ip_summary = f"[{self.packet_counter}] ({timestamp:.2f}) IP: {packet[IP].src} -> {packet[IP].dst}"
+            output_callback(Text(ip_summary, style=DEFAULT_COLORS['IP']))
+
+        handle_payload(packet, output_callback, 'IP', efficient_mode)
+
+    def _handle_tcp_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['TCP'] += 1
-        tcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) TCP: {packet[TCP].sport} -> {packet[TCP].dport}"
-        output_callback(Text(tcp_summary, style=DEFAULT_COLORS['TCP']))
-        handle_payload(packet, output_callback, 'TCP')
 
-    def _handle_udp_layer(self, packet, output_callback, timestamp):
+        if not efficient_mode:
+            tcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) TCP: {packet[TCP].sport} -> {packet[TCP].dport}"
+            output_callback(Text(tcp_summary, style=DEFAULT_COLORS['TCP']))
+        else:
+            tcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) TCP: {packet[IP].src}:{packet[TCP].sport} -> {packet[IP].dst}:{packet[TCP].dport}"
+            output_callback(Text(tcp_summary, style=DEFAULT_COLORS['TCP']))
+
+        handle_payload(packet, output_callback, 'TCP', efficient_mode)
+
+    def _handle_udp_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['UDP'] += 1
-        udp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) UDP: {packet[UDP].sport} -> {packet[UDP].dport}"
-        output_callback(Text(udp_summary, style=DEFAULT_COLORS['UDP']))
-        handle_payload(packet, output_callback, 'UDP')
 
-    def _handle_dns_layer(self, packet, output_callback, timestamp):
+        if not efficient_mode:
+            udp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) UDP: {packet[UDP].sport} -> {packet[UDP].dport}"
+            output_callback(Text(udp_summary, style=DEFAULT_COLORS['UDP']))
+        else:
+            udp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) UDP: {packet[IP].src}:{packet[UDP].sport} -> {packet[IP].dst}:{packet[UDP].dport}"
+            output_callback(Text(udp_summary, style=DEFAULT_COLORS['UDP']))
+
+        handle_payload(packet, output_callback, 'UDP', efficient_mode)
+
+    def _handle_dns_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['DNS'] += 1
-        dns_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DNS Queries: {' '.join(q.qname.decode() for q in packet[DNS].qd)}" if \
-            packet[DNS].qd else "DNS Queries: No Queries"
-        output_callback(Text(dns_summary, style=DEFAULT_COLORS['DNS']))
-        handle_payload(packet, output_callback, 'DNS')
 
-    def _handle_dhcp_layer(self, packet, output_callback, timestamp):
+        if not efficient_mode:
+            dns_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DNS Queries: {' '.join(q.qname.decode() for q in packet[DNS].qd)}" if packet[DNS].qd else "DNS Queries: No Queries"
+            output_callback(Text(dns_summary, style=DEFAULT_COLORS['DNS']))
+        else:
+            dns_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DNS: {packet[IP].src} -> {packet[IP].dst}"
+            output_callback(Text(dns_summary, style=DEFAULT_COLORS['DNS']))
+
+        handle_payload(packet, output_callback, 'DNS', efficient_mode)
+
+    def _handle_dhcp_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['DHCP'] += 1
-        dhcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DHCP: {packet[DHCP].options}"
-        output_callback(Text(dhcp_summary, style=DEFAULT_COLORS['DHCP']))
-        handle_payload(packet, output_callback, 'DHCP')
+        if not efficient_mode:
+            dhcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DHCP: {packet[DHCP].options}"
+            output_callback(Text(dhcp_summary, style=DEFAULT_COLORS['DHCP']))
+        else:
+            dhcp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) DHCP: {packet[IP].src} -> {packet[IP].dst}"
+            output_callback(Text(dhcp_summary, style=DEFAULT_COLORS['DHCP']))
 
-    def _handle_http_layer(self, packet, output_callback, timestamp):
+        handle_payload(packet, output_callback, 'DHCP', efficient_mode)
+
+    def _handle_http_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['HTTP'] += 1
 
-        if packet.haslayer(HTTPRequest) or packet.haslayer(HTTPResponse):
+        if not efficient_mode:
             http_summary = f"[{self.packet_counter}] ({timestamp:.2f}) HTTP"
             output_callback(Text(http_summary, style=DEFAULT_COLORS['HTTP']))
-
             http_info = parse_http_details(packet)
             output_callback(Text(http_info, style=DEFAULT_COLORS['HTTP']))
         else:
-            output_callback(Text("[Non-HTTP Packet]", style="italic"))
+            http_summary = f"[{self.packet_counter}] ({timestamp:.2f}) HTTP: {packet[IP].src} -> {packet[IP].dst}"
+            output_callback(Text(http_summary, style=DEFAULT_COLORS['HTTP']))
 
-    def _handle_ntp_layer(self, packet, output_callback, timestamp):
+    def _handle_ntp_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['NTP'] += 1
-        ntp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) NTP Version: {packet[NTP].version}"
-        output_callback(Text(ntp_summary, style=DEFAULT_COLORS['NTP']))
-        handle_payload(packet, output_callback, 'NTP')
 
-    def _handle_arp_layer(self, packet, output_callback, timestamp):
+        if not efficient_mode:
+            ntp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) NTP Version: {packet[NTP].version}"
+            output_callback(Text(ntp_summary, style=DEFAULT_COLORS['NTP']))
+        else:
+            ntp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) NTP: {packet[IP].src} -> {packet[IP].dst}"
+            output_callback(Text(ntp_summary, style=DEFAULT_COLORS['NTP']))
+
+        handle_payload(packet, output_callback, 'NTP', efficient_mode)
+
+    def _handle_arp_layer(self, packet, output_callback, timestamp, efficient_mode=False):
         self.packet_counter += 1
         self.packet_counts['ARP'] += 1
 
-        # Construct the basic ARP summary
-        arp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) ARP: "
-        if packet[ARP].op == 1:  # ARP Request
-            arp_summary += f"Who has {packet[ARP].pdst}? Tell {packet[ARP].psrc}"
-        elif packet[ARP].op == 2:  # ARP Reply
-            arp_summary += f"{packet[ARP].psrc} is at {packet[ARP].hwsrc}"
-        output_callback(Text(arp_summary, style=DEFAULT_COLORS['ARP']))
+        # Ensure arp_summary has a default value or is assigned in all paths
+        arp_summary = ""  # Initialize as an empty string or a suitable default value
 
-        arp_details = parse_arp_details(packet[ARP])
-        output_callback(Text(arp_details, style=DEFAULT_COLORS['ARP']))
+        if not efficient_mode:
+            if packet[ARP].op == 1:  # ARP Request
+                arp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) ARP: Who has {packet[ARP].pdst}? Tell {packet[ARP].psrc}"
+            elif packet[ARP].op == 2:  # ARP Reply
+                arp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) ARP: {packet[ARP].psrc} is at {packet[ARP].hwsrc}"
+            else:
+                # Handle other cases or unexpected ARP operation codes
+                arp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) ARP: Unknown operation {packet[ARP].op}"
+            output_callback(Text(arp_summary, style=DEFAULT_COLORS['ARP']))
+
+            arp_details = parse_arp_details(packet[ARP])
+            output_callback(Text(arp_details, style=DEFAULT_COLORS['ARP']))
+        else:
+            arp_summary = f"[{self.packet_counter}] ({timestamp:.2f}) ARP: {packet[ARP].psrc} -> {packet[ARP].pdst}"
+            output_callback(Text(arp_summary, style=DEFAULT_COLORS['ARP']))
 
     @staticmethod
     def reset_packet_counts():
@@ -182,13 +224,17 @@ class PacketParser:
         parser.packet_counter = 0
 
 
-def handle_payload(packet, output_callback, protocol):
-    if packet.haslayer(Raw):
+def handle_payload(packet, output_callback, protocol, efficient_mode=False):
+    # Check for efficient mode and return immediately without processing or outputting payload details.
+    if efficient_mode:
+        return  # Skip further processing and avoid outputting the generic message.
+
+    if packet.haslayer(Raw):  # Show hexdump only if not in efficient mode
         payload = packet[Raw].load[:DEFAULT_PAYLOAD_SIZE]
         payload_hexdump = hexdump(payload, dump=True)
         output_callback(Text(payload_hexdump, style=DEFAULT_COLORS[protocol]))
     else:
-        # Custom handling for structured data per protocol
+        # For structured protocols in non-efficient mode, provide detailed output if needed.
         if protocol == 'DNS':
             dns_info = parse_dns_details(packet[DNS])
             output_callback(Text(dns_info, style=DEFAULT_COLORS[protocol]))

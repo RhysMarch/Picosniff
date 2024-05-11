@@ -55,8 +55,14 @@ async def handle_command(handler, event):
 
     command, *args = input_text.split()
 
+    efficient_mode = '-e' in args
+
+    parts = input_text.split()
+    command = parts[0]
+    args = parts[1:]
+
     command_actions = {
-        'sniff': handler.handle_sniff,
+        'sniff': lambda args: handler.handle_sniff(args, efficient_mode),  # Pass efficient_mode to handle_sniff
         'stop': handler.handle_stop,
         'clear': handler.handle_clear,
         'help': handler.handle_help,
@@ -74,7 +80,7 @@ class CommandHandler:
         self.app = app
         self.current_interface = None
 
-    async def handle_sniff(self, args):
+    async def handle_sniff(self, args, efficient_mode=False):  # Add efficient_mode parameter
         if not args:
             self.app.output_area.write("No interface specified.\n")
             return
@@ -82,8 +88,8 @@ class CommandHandler:
         iface_index = int(args[0])
         if 0 < iface_index <= len(IFACES):
             iface_name = IFACES[list(IFACES.keys())[iface_index - 1]].name
-            self.current_interface = iface_name  # Store the current interface being sniffed
-            self.start_sniffing_on_interface(iface_name)
+            self.current_interface = iface_name
+            self.start_sniffing_on_interface(iface_name, efficient_mode)  # Pass efficient_mode to start_sniffing_on_interface
         else:
             self.app.output_area.write("Invalid interface index\n")
 
@@ -114,6 +120,8 @@ class CommandHandler:
         help_text.append("\nCommands:\n", style="underline")
         help_text.append("sniff <interface_index>", style="bold cyan")
         help_text.append(" : Starts packet sniffing on the specified interface.\n", style="white")
+        help_text.append("sniff <interface_index> -e", style="bold cyan")
+        help_text.append(" : Efficient Packet Sniffing.\n", style="white")
         help_text.append("stop", style="bold cyan")
         help_text.append(" : Stops packet sniffing.\n", style="white")
         help_text.append("clear", style="bold cyan")
@@ -192,7 +200,7 @@ class CommandHandler:
         simulation_thread.start()
         self.app.output_area.write(f"Initiating attack simulation on {interface}\n")
 
-    def start_sniffing_on_interface(self, iface_name):
+    def start_sniffing_on_interface(self, iface_name, efficient_mode=False):
         self.app.output_area.clear()
         self.hide_interfaces()  # Hide top left pane when sniffing starts
         self.hide_attack_pane()
@@ -205,9 +213,8 @@ class CommandHandler:
         parser.reset_packet_counter()
         parser.start_time = time.time()
         start_sniffing(iface_name,
-                       lambda packet: parser.parse_packet(packet,
-                                                          self.app.output_area.write,
-                                                          self.app.handle_attack_alert),
+                       lambda packet: parser.parse_packet(packet, self.app.output_area.write,
+                                                          self.app.handle_attack_alert, efficient_mode),
                        lambda: self.app.sniffing_active)
         self.app.set_timer(5, self.check_for_no_packets)
 
