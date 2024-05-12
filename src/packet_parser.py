@@ -69,6 +69,7 @@ class PacketParser:
         }
 
     def parse_packet(self, packet, output_callback, attack_output_callback, efficient_mode=False):
+        """Parses a packet, detects attacks, and generates formatted output."""
         try:
             current_time = time.time()
             if self.start_time is None or current_time < self.start_time:
@@ -216,16 +217,18 @@ class PacketParser:
 
     @staticmethod
     def reset_packet_counts():
+        """Resets all protocol-specific packet counters."""
         for key in parser.packet_counts.keys():
             parser.packet_counts[key] = 0
 
     @staticmethod
     def reset_packet_counter():
+        """Resets the global packet counter."""
         parser.packet_counter = 0
 
 
 def handle_payload(packet, output_callback, protocol, efficient_mode=False):
-    # Check for efficient mode and return immediately without processing or outputting payload details.
+    """Handles packet payloads based on protocol and efficient mode."""
     if efficient_mode:
         return  # Skip further processing and avoid outputting the generic message.
 
