@@ -1,37 +1,43 @@
 """
 tui_handler.py
 
-This module defines the command handling and UI display logic for a Textual-based network packet sniffing application.
-It interprets user inputs, executes actions such as starting or stopping packet sniffing, clearing the display, or exiting the application. The module also renders help information in stylised panels.
+This module handles command input, UI interactions, and packet sniffing logic for a Textual-based network packet sniffing application. It interprets user commands, manages the sniffing process, and displays results in a formatted manner.
+
+Features:
+- Command Handling: Interprets and executes commands like 'sniff', 'stop', 'clear', 'help', 'exit', and 'test'.
+- Efficient Mode: Supports efficient packet sniffing with reduced output for faster processing.
+- Packet Sniffing: Initiates and manages packet sniffing on specified network interfaces.
+- UI Interactions:
+    - Displays help information with detailed command descriptions and visualisations.
+    - Clears the output area and resets packet statistics.
+    - Shows or hides specific UI panels (attack alerts, interface list).
+- Attack Simulation: Includes a 'test' command to launch simulated SYN and DNS flood attacks for testing the application's attack detection capabilities.
+
+Classes:
+- CommandHandler:
+    - Manages the application's state, command handling, and UI interactions.
+    - Handles the 'sniff', 'stop', 'clear', 'help', 'exit', and 'test' commands.
+    - Interacts with other modules for packet sniffing, parsing, and visualisation.
 
 Functions:
-- handle_command(self, event): Parses and executes commands received through a textual input widget.
-- handle_sniff(self, args): Initiates packet sniffing on a specified network interface.
-- handle_stop(self, args): Stops the active packet sniffing session.
-- handle_clear(self, args): Clears the display areas and stops packet sniffing.
-- handle_help(self, args): Displays a help screen with command descriptions and information panels.
+- handle_command(handler, event): Asynchronous function to parse and execute commands from the Textual input event.
+- handle_sniff(self, args, efficient_mode=False): Starts packet sniffing on the specified interface, optionally in efficient mode.
+- handle_stop(self, args): Stops the current packet sniffing session.
+- handle_clear(self, args): Clears the output area, stops sniffing, and resets the UI.
+- handle_help(self, args): Displays detailed help information with command descriptions and visualisations.
 - handle_exit(self, args): Exits the application gracefully.
-- handle_unknown_command(self, args): Provides feedback for unrecognised or malformed commands.
-- handle_test(self, args):  Launches a simulated SYN and DNS flood attack for testing purposes.
-
-Additional UI Functions:
-- show_attack_pane(self): Makes the attack alerts panel visible.
+- handle_test(self, args): Launches simulated SYN and DNS flood attacks on the currently sniffed interface.
+- show_attack_pane(self): Displays the attack alerts panel.
 - hide_attack_pane(self): Hides the attack alerts panel.
-- show_interfaces(self): Shows the 'top-left' interface panel.
-- hide_interfaces(self): Hides the 'top-left' interface panel.
-
-Responsibilities:
-- Manage the overall state of packet sniffing.
-- Render user interface panels with Rich text formatting.
-- Validate user commands and provide feedback.
-- Coordinate with external modules for packet parsing, sniffing, and visualisation.
+- show_interfaces(self): Shows the interface selection panel.
+- hide_interfaces(self): Hides the interface selection panel.
+- start_sniffing_on_interface(self, iface_name, efficient_mode=False): Initialises and starts the packet sniffing process on the specified interface.
+- check_for_no_packets(self): Checks if any packets have been captured after a delay and provides feedback if none are found.
 
 Dependencies:
-- scapy.interfaces.IFACES: Used to validate and resolve network interface specifications.
-- packet_parser:  Parses packets and manages packet counters.
-- packet_sniffer:  Handles the packet sniffing process.
-- visualisation: Contains widgets for displaying packet flow, packet counts, and IP distribution.
-- attack_detection_test: Provides functions to simulate attacks.
+- rich: For rich text formatting and styling in the output area.
+- scapy: For packet sniffing and network interface interactions.
+- attack_detection_test: For simulating attacks (used in the 'test' command).
 """
 import gc
 import threading
