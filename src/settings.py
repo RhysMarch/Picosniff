@@ -2,10 +2,10 @@
 This module, settings.py, manages configuration settings for the Picosniff application such as default
 colors for packet types and payload sizes.
 
-This module centralizes configuration settings, making them easily accessible and modifiable throughout the application.
+This module centralises configuration settings, making them easily accessible and modifiable throughout the application.
 """
 
-# Default payload size for packet visualization
+# Default payload size for packet visualisation
 DEFAULT_PAYLOAD_SIZE = 100
 
 # Default colors for packet types
