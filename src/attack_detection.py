@@ -1,3 +1,32 @@
+"""
+attack_detection.py
+
+This module provides real-time detection of network flood attacks (SYN floods and DNS query floods).
+It utilises a sliding window approach to analyse packet rates, employing exponential weighted moving averages (EWMA) for dynamic thresholding.
+
+Key Features:
+- ARP Spoofing Detection: Monitors ARP packets to detect potential spoofing attempts by tracking MAC address changes for known IP addresses.
+- SYN Flood Detection:  Identifies SYN floods by analysing the rate of SYN packets from a source IP.
+- DNS Query Flood Detection: Detects DNS query floods based on the rate of DNS queries from a source IP.
+- Dynamic Thresholding: Employs EWMA to adjust detection thresholds adaptively based on observed traffic patterns, reducing false positives.
+- Time Window Analysis: Analyses packet rates within a defined time window to capture short-term bursts of activity.
+- Configurable Parameters: Allows customisation of threshold multipliers, initial baseline rates, EWMA smoothing factor, and decay factor.
+- Efficient Event Tracking:  Uses deques to store event timestamps, ensuring efficient insertion and removal for real-time processing.
+
+Classes:
+- AttackDetector:
+    - The main class for attack detection.
+    - Methods:
+        - __init__(): Initialises the detector with default parameters and data structures.
+        - _detect_flood(packet, event_type):  Analyses packet rates for a specific event type ('syn' or 'dns') and returns an alert message if a flood is detected.
+        - _cleanup_events(event_type): Removes expired events from the event history to maintain the time window.
+        - detect_attacks(packet, start_time): The primary interface for detecting attacks. Processes a packet and returns an alert message if any attack is detected, including relative timestamp and event rate.
+
+Usage:
+1. Create an instance of `AttackDetector`.
+2. For each incoming packet, call `detect_attacks(packet, start_time)` to get a potential alert message.
+3. Handle the alert message as needed (e.g., display).
+"""
 from collections import defaultdict, deque
 from scapy.layers.dns import DNS
 from scapy.layers.inet import TCP, IP
