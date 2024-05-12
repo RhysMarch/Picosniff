@@ -5,7 +5,6 @@ Provides utility functions for network interface discovery and ASCII art logo ge
 
 Functions:
   ascii_logo(): Returns a string containing an ASCII art representation of the Picosniff logo.
-
   get_interfaces_info(): Collects information about available network interfaces and formats it into a Rich Text object.
 """
 import platform
