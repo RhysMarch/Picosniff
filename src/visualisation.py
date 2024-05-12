@@ -15,7 +15,7 @@ Features:
 - Dynamic updates:  The widgets update in real-time as new packet data is received.
 - Data reset: The widgets are automatically reset when a new packet sniffing session begins.
 - Local IP identification: The IPDistributionTable highlights IP addresses that belong to the local machine.
-- Informative WHOIS lookups: Provides organization, country, and email information (when available) for public IP addresses.
+- Informative WHOIS lookups: Provides organisation, country, and email information (when available) for public IP addresses.
 
 Dependencies:
 - Textual: Used to create the UI components in a terminal-based environment.
@@ -53,7 +53,7 @@ class PacketCountsTable(Widget):
         self.table.add_column("Protocol", justify="left", style="bright_white")
         self.table.add_column("Count", justify="left", style="bright_white")
 
-        total_packets = 0  # Initialize total packet count
+        total_packets = 0  # Initialise total packet count
 
         # Loop through each protocol and count, adding a row for each
         for protocol, count in parser.packet_counts.items():
@@ -78,7 +78,7 @@ class PacketFlowPlot(PlotextPlot):
         self.plt.ylabel("Packets")
         self.plt.grid = True
         self._last_plot_time = time.time()
-        self._data = []  # Initialize with empty data
+        self._data = []  # Initialise with empty data
         self._packet_count_last_second = 0
         self._start_time = time.time()
         self._tracking_started = False
@@ -204,7 +204,7 @@ class IPDistributionTable(Widget):
             else:
                 w = whois.whois(ip)
                 # Apply Rich Styles
-                org = f"[bold cyan]{w.get('org', 'No organization found')}[/]"
+                org = f"[bold cyan]{w.get('org', 'No organisation found')}[/]"
                 country = f"[dim]{w.get('country')}[/]"
                 email = f"[yellow]{w.get('emails')[0]}[/]" if w.get('emails') else 'No email found'
                 info = f"{org}, {country}, {email}"
