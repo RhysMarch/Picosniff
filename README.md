@@ -16,6 +16,14 @@ network traffic and detecting potential network threats.
 - **Data Visualization**: Graphical representation of network traffic flow and patterns.
 - **Attack Detection**: Basic mechanisms to detect common network threats such as DoS attacks.
 
+## Prerequisites
+
+Before installing PicoSniff, ensure your system meets the following requirements:
+
+- **Python Version**: Python 3.6 or higher. You can check your Python version by running `python --version` or `python3 --version` in your terminal.
+- **Pip**: Ensure Python's package installer, pip, is up to date by running `pip install --upgrade pip`.
+- **Network Permissions**: Ensure your user account has the necessary permissions to capture network packets. This may require administrative access or specific capabilities set on Linux.
+
 ## Installation & Usage
 
 To install PicoSniff, follow these steps:
